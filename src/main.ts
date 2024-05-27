@@ -35,7 +35,7 @@ export async function run(): Promise<void> {
       const url = `https://staging-hooks.montara.io/pipeline/run/status?runId=${runId.toString().trim()}&webhookId=${webhookId.toString().trim()}`
 
       core.debug(
-        `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}`
+        `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter} with url ${url}`
       )
       const runStatus = await axios.get<{
         id: string
