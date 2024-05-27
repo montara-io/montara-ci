@@ -40,12 +40,7 @@ export async function run(): Promise<void> {
       const runStatus = await axios.get<{
         id: string
         status: PipelineRunStatus
-      }>(url, {
-        // params: {
-        //   runId: webhookResponse?.data?.runId,
-        //   webhookId: webhookResponse?.data?.webhookId
-        // }
-      })
+      }>(url)
       core.debug(
         `Got response from status check: ${JSON.stringify(runStatus.data)}`
       )
@@ -57,7 +52,7 @@ export async function run(): Promise<void> {
         core.debug(
           `Pipeline run failed. Here is the response: ${JSON.stringify(runStatus.data)}`
         )
-        core.setOutput('isPassing', true)
+        core.setOutput('isPassing', false)
         core.setFailed(
           `Pipeline run failed with the following response: ${JSON.stringify(runStatus.data)}`
         )
