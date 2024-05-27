@@ -28488,7 +28488,7 @@ async function run() {
     catch (error) {
         // Fail the workflow run if an error occurs
         if (error instanceof Error) {
-            core.error(`Error occurred: ${error.message}`);
+            core.error(`Error occurred: ${JSON.stringify(error)}`);
             core.setFailed(error.message);
         }
     }
