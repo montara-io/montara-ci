@@ -1,17 +1,9 @@
 import * as core from '@actions/core'
 import { wait } from './wait'
-import axios from 'axios'
 
 import { getRunStatus, triggerPipelineFromWebhookUrl } from './pipeline-run'
 import { postComment } from './github'
 import { PIPELINE_RUN_STATUS } from './comment-templates'
-
-type PipelineRunStatus =
-  | 'pending'
-  | 'in_progress'
-  | 'failed'
-  | 'completed'
-  | 'conflict'
 
 /**
  * The main function for the action.

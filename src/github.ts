@@ -1,7 +1,12 @@
 import github from '@actions/github'
 
-export async function postComment({ comment }: { comment: string }) {
-  const octokit = new github.getOctokit(process.env.GITHUB_TOKEN)
+export async function postComment({
+  comment
+}: {
+  comment: string
+}): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const octokit = new (github as any).getOctokit(process.env.GITHUB_TOKEN ?? '')
   const context = github.context
   const { pull_request, repository } = context.payload
 

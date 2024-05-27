@@ -8,7 +8,12 @@ type PipelineRunStatus =
   | 'completed'
   | 'conflict'
 
-export async function triggerPipelineFromWebhookUrl(webhookUrl: string) {
+export async function triggerPipelineFromWebhookUrl(
+  webhookUrl: string
+): Promise<{
+  runId: string
+  webhookId: string
+}> {
   // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
   core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`)
 
@@ -31,7 +36,13 @@ export async function getRunStatus({
 }: {
   runId: string
   webhookId: string
-}) {
+}): Promise<{
+  status: PipelineRunStatus
+  data: {
+    id: string
+    status: PipelineRunStatus
+  }
+}> {
   const url = `https://hooks.montara.io/pipeline/run/status`
 
   const runStatus = await axios.get<{

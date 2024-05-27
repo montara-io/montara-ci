@@ -1,5 +1,5 @@
 export const PIPELINE_RUN_STATUS = `
-Pipeline run is {{status}}
+Pipeline run is {{status}}.
 # Montara CI
 
 [![GitHub Super-Linter](https://github.com/actions/typescript-action/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
