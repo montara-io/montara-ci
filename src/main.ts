@@ -30,13 +30,13 @@ export async function run(): Promise<void> {
     let counter = 0
     while (counter < 10) {
       core.debug(
-        `Checking status of pipeline run with runId: ${webhookResponse?.data?.runId}`
+        `Checking status of pipeline run with runId: ${webhookResponse?.data?.runId} and webhookId: ${webhookResponse?.data?.webhookId}`
       )
       const runStatus = await axios.get<{
         id: string
         status: PipelineRunStatus
       }>(
-        `https://hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}&webhookId=${webhookResponse?.data?.webhookId}`
+        `https://staging-hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}&webhookId=${webhookResponse?.data?.webhookId}`
       )
       if (runStatus.data.status === 'completed') {
         core.debug(`Pipeline run completed successfully!`)
@@ -54,6 +54,9 @@ export async function run(): Promise<void> {
     }
   } catch (error) {
     // Fail the workflow run if an error occurs
-    if (error instanceof Error) core.setFailed(error.message)
+    if (error instanceof Error) {
+      core.error(`Error occurred: ${error.message}`)
+      core.setFailed(error.message)
+    }
   }
 }

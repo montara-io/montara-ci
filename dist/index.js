@@ -28468,8 +28468,8 @@ async function run() {
         core.debug(`Got response from webhook: ${JSON.stringify(webhookResponse?.data)}`);
         let counter = 0;
         while (counter < 10) {
-            core.debug(`Checking status of pipeline run with runId: ${webhookResponse?.data?.runId}`);
-            const runStatus = await axios_1.default.get(`https://hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}&webhookId=${webhookResponse?.data?.webhookId}`);
+            core.debug(`Checking status of pipeline run with runId: ${webhookResponse?.data?.runId} and webhookId: ${webhookResponse?.data?.webhookId}`);
+            const runStatus = await axios_1.default.get(`https://staging-hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}&webhookId=${webhookResponse?.data?.webhookId}`);
             if (runStatus.data.status === 'completed') {
                 core.debug(`Pipeline run completed successfully!`);
                 core.setOutput('isPassing', true);
@@ -28486,8 +28486,10 @@ async function run() {
     }
     catch (error) {
         // Fail the workflow run if an error occurs
-        if (error instanceof Error)
+        if (error instanceof Error) {
+            core.error(`Error occurred: ${error.message}`);
             core.setFailed(error.message);
+        }
     }
 }
 exports.run = run;
