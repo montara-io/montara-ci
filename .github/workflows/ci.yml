@@ -55,6 +55,8 @@ jobs:
 
       - name: Test Local Action
         id: test-action
+        env:
+          MONTARA_GITHUB_TOKEN: ${{ secrets.MONTARA_GITHUB_TOKEN }}
         uses: ./
         with:
           webhookUrl: https://staging-hooks.montara.io/pipeline/v2/trigger/36a07953-feac-4de5-a2e8-fbcbe2373e57
