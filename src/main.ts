@@ -45,6 +45,7 @@ export async function run(): Promise<void> {
 
           break
         }
+        counter = 10
       }
       await wait(10000)
       counter++

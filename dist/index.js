@@ -33007,6 +33007,7 @@ async function run() {
                     core.setFailed(`Pipeline run failed with the following response: ${JSON.stringify(data)}`);
                     break;
                 }
+                counter = 10;
             }
             await (0, wait_1.wait)(10000);
             counter++;
