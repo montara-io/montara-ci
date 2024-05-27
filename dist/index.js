@@ -28455,14 +28455,6 @@ exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const wait_1 = __nccwpck_require__(5259);
 const axios_1 = __importDefault(__nccwpck_require__(8757));
-var RunStatus;
-(function (RunStatus) {
-    RunStatus["pending"] = "pending";
-    RunStatus["in_progress"] = "in_progress";
-    RunStatus["failed"] = "failed";
-    RunStatus["completed"] = "completed";
-    RunStatus["conflict"] = "conflict";
-})(RunStatus || (RunStatus = {}));
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -28477,11 +28469,11 @@ async function run() {
         const counter = 0;
         while (counter < 10) {
             const runStatus = await axios_1.default.get(`https://hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}`);
-            if (runStatus.data.status === RunStatus.completed) {
+            if (runStatus.data.status === 'completed') {
                 core.setOutput('isPassing', true);
                 break;
             }
-            else if (runStatus.data.status === RunStatus.failed) {
+            else if (runStatus.data.status === 'failed') {
                 core.setOutput('isPassing', false);
                 break;
             }
