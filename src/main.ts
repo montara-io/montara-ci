@@ -1,13 +1,12 @@
 import * as core from '@actions/core'
 import { wait } from './wait'
-import axios from 'axios'
 
-type PipelineRunStatus =
-  | 'pending'
-  | 'in_progress'
-  | 'failed'
-  | 'completed'
-  | 'conflict'
+import {
+  buildRunResultTemplate,
+  getRunStatus,
+  triggerPipelineFromWebhookUrl
+} from './pipeline-run'
+import { postComment } from './github'
 
 /**
  * The main function for the action.
@@ -16,52 +15,39 @@ type PipelineRunStatus =
 export async function run(): Promise<void> {
   try {
     const webhookUrl: string = core.getInput('webhookUrl')
+    const isStaging: boolean = core.getInput('isStaging') === 'true'
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`)
-
-    const {
-      data: { runId, webhookId }
-    } = await axios.post<{
-      runId: string
-      webhookId: string
-    }>(webhookUrl)
-    core.debug(
-      `Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`
-    )
+    const { runId, webhookId } = await triggerPipelineFromWebhookUrl(webhookUrl)
     let counter = 0
     await wait(2000)
     while (counter < 10) {
-      const url = `https://hooks.montara.io/pipeline/run/status`
-
       core.debug(
-        `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter} with url ${url}`
+        `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}`
       )
-      const runStatus = await axios.get<{
-        id: string
-        status: PipelineRunStatus
-      }>(url, {
-        params: {
-          runId,
-          webhookId
-        }
+      const { status, pipelineId } = await getRunStatus({
+        runId,
+        webhookId,
+        isStaging
       })
-      core.debug(
-        `Got response from status check: ${JSON.stringify(runStatus.data)}`
-      )
-      if (runStatus.data.status === 'completed') {
-        core.debug(`Pipeline run completed successfully!`)
-        core.setOutput('isPassing', true)
-        break
-      } else if (runStatus.data.status === 'failed') {
-        core.debug(
-          `Pipeline run failed. Here is the response: ${JSON.stringify(runStatus.data)}`
-        )
-        core.setOutput('isPassing', false)
-        core.setFailed(
-          `Pipeline run failed with the following response: ${JSON.stringify(runStatus.data)}`
-        )
-        break
+      if (['completed', 'failed'].includes(status)) {
+        await postComment({
+          comment: buildRunResultTemplate({
+            isPassing: status === 'completed',
+            isStaging,
+            runId,
+            pipelineId
+          })
+        })
+        if (status === 'completed') {
+          core.debug(`Pipeline run completed successfully!`)
+          core.setOutput('isPassing', true)
+          break
+        } else if (status === 'failed') {
+          core.setOutput('isPassing', false)
+
+          break
+        }
+        counter = 10
       }
       await wait(10000)
       counter++
