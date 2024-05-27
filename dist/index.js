@@ -28469,7 +28469,7 @@ async function run() {
         let counter = 0;
         while (counter < 10) {
             core.debug(`Checking status of pipeline run with runId: ${webhookResponse?.data?.runId}`);
-            const runStatus = await axios_1.default.get(`https://hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}`);
+            const runStatus = await axios_1.default.get(`https://hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}&webhookId=${webhookResponse?.data?.webhookId}`);
             if (runStatus.data.status === 'completed') {
                 core.debug(`Pipeline run completed successfully!`);
                 core.setOutput('isPassing', true);
