@@ -20,23 +20,34 @@ export async function run(): Promise<void> {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
     core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`)
 
-    const webhookResponse = await axios.post<{
+    const {
+      data: { runId, webhookId }
+    } = await axios.post<{
       runId: string
       webhookId: string
     }>(webhookUrl)
     core.debug(
-      `Got response from webhook: ${JSON.stringify(webhookResponse?.data)}`
+      `Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`
     )
     let counter = 0
+    await wait(2000)
     while (counter < 10) {
+      const url = `https://staging-hooks.montara.io/pipeline/run/status`
+
       core.debug(
-        `Checking status of pipeline run with runId: ${webhookResponse?.data?.runId} and webhookId: ${webhookResponse?.data?.webhookId}`
+        `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter} with url ${url}`
       )
       const runStatus = await axios.get<{
         id: string
         status: PipelineRunStatus
-      }>(
-        `https://staging-hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}&webhookId=${webhookResponse?.data?.webhookId}`
+      }>(url, {
+        params: {
+          runId,
+          webhookId
+        }
+      })
+      core.debug(
+        `Got response from status check: ${JSON.stringify(runStatus.data)}`
       )
       if (runStatus.data.status === 'completed') {
         core.debug(`Pipeline run completed successfully!`)
@@ -47,6 +58,9 @@ export async function run(): Promise<void> {
           `Pipeline run failed. Here is the response: ${JSON.stringify(runStatus.data)}`
         )
         core.setOutput('isPassing', false)
+        core.setFailed(
+          `Pipeline run failed with the following response: ${JSON.stringify(runStatus.data)}`
+        )
         break
       }
       await wait(10000)
@@ -55,7 +69,7 @@ export async function run(): Promise<void> {
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) {
-      core.error(`Error occurred: ${error.message}`)
+      core.error(`Error occurred: ${JSON.stringify(error)}`)
       core.setFailed(error.message)
     }
   }
