@@ -12,6 +12,9 @@ inputs:
   webhookUrl:
     description: 'The URL of the webhook'
     required: true
+  isStaging:
+    description: 'Whether the test run is for staging or not'
+    required: false
 
 # Define your outputs here.
 outputs:

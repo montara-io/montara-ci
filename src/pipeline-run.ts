@@ -32,10 +32,12 @@ export async function triggerPipelineFromWebhookUrl(
 
 export async function getRunStatus({
   runId,
-  webhookId
+  webhookId,
+  isStaging
 }: {
   runId: string
   webhookId: string
+  isStaging: boolean
 }): Promise<{
   status: PipelineRunStatus
   data: {
@@ -43,7 +45,7 @@ export async function getRunStatus({
     status: PipelineRunStatus
   }
 }> {
-  const url = `https://hooks.montara.io/pipeline/run/status`
+  const url = `https://hooks${isStaging ? '-staging' : ''}.montara.io/pipeline/run/status`
 
   const runStatus = await axios.get<{
     id: string

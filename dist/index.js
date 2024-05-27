@@ -32962,12 +32962,17 @@ const comment_templates_1 = __nccwpck_require__(9013);
 async function run() {
     try {
         const webhookUrl = core.getInput('webhookUrl');
+        const isStaging = core.getInput('isStaging') === 'true';
         const { runId, webhookId } = await (0, pipeline_run_1.triggerPipelineFromWebhookUrl)(webhookUrl);
         let counter = 0;
         await (0, wait_1.wait)(2000);
         while (counter < 10) {
             core.debug(`Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}`);
-            const { status, data } = await (0, pipeline_run_1.getRunStatus)({ runId, webhookId });
+            const { status, data } = await (0, pipeline_run_1.getRunStatus)({
+                runId,
+                webhookId,
+                isStaging
+            });
             if (['pending', 'in_progress'].includes(status)) {
                 await (0, github_1.postComment)({
                     comment: comment_templates_1.PIPELINE_RUN_STATUS.replaceAll('{{status}}', status)
@@ -33044,8 +33049,8 @@ async function triggerPipelineFromWebhookUrl(webhookUrl) {
     return { runId, webhookId };
 }
 exports.triggerPipelineFromWebhookUrl = triggerPipelineFromWebhookUrl;
-async function getRunStatus({ runId, webhookId }) {
-    const url = `https://hooks.montara.io/pipeline/run/status`;
+async function getRunStatus({ runId, webhookId, isStaging }) {
+    const url = `https://hooks${isStaging ? '-staging' : ''}.montara.io/pipeline/run/status`;
     const runStatus = await axios_1.default.get(url, {
         params: {
             runId,

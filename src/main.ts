@@ -12,6 +12,7 @@ import { PIPELINE_RUN_STATUS } from './comment-templates'
 export async function run(): Promise<void> {
   try {
     const webhookUrl: string = core.getInput('webhookUrl')
+    const isStaging: boolean = core.getInput('isStaging') === 'true'
 
     const { runId, webhookId } = await triggerPipelineFromWebhookUrl(webhookUrl)
     let counter = 0
@@ -20,7 +21,11 @@ export async function run(): Promise<void> {
       core.debug(
         `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}`
       )
-      const { status, data } = await getRunStatus({ runId, webhookId })
+      const { status, data } = await getRunStatus({
+        runId,
+        webhookId,
+        isStaging
+      })
       if (['pending', 'in_progress'].includes(status)) {
         await postComment({
           comment: PIPELINE_RUN_STATUS.replaceAll('{{status}}', status)
