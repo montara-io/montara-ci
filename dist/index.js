@@ -28469,7 +28469,7 @@ async function run() {
         let counter = 0;
         while (counter < 10) {
             // const url = `https://staging-hooks.montara.io/pipeline/run/status`
-            const url = `https://staging-hooks.montara.io/pipeline/run/status?runId=717fe810-0a67-48f7-bb5e-a086da134082&webhookId=36a07953-feac-4de5-a2e8-fbcbe2373e57`;
+            const url = `https://staging-hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId.trim()}&webhookId=${webhookResponse?.data?.webhookId.trim()}`;
             core.debug(`Checking status of pipeline run with runId: ${webhookResponse?.data?.runId} and webhookId: ${webhookResponse?.data?.webhookId}`);
             const runStatus = await axios_1.default.get(url, {
             // params: {
@@ -28485,7 +28485,8 @@ async function run() {
             }
             else if (runStatus.data.status === 'failed') {
                 core.debug(`Pipeline run failed. Here is the response: ${JSON.stringify(runStatus.data)}`);
-                core.setOutput('isPassing', false);
+                core.setOutput('isPassing', true);
+                core.setFailed(`Pipeline run failed with the following response: ${JSON.stringify(runStatus.data)}`);
                 break;
             }
             await (0, wait_1.wait)(10000);
