@@ -32917,7 +32917,7 @@ async function getRunStatus({ runId, webhookId, isStaging }) {
 exports.getRunStatus = getRunStatus;
 function buildRunResultTemplate({ isPassing, isStaging, runId, pipelineId }) {
     const templateVariableToValue = {
-        status_icon: isPassing ? 'x' : 'white_check_mark',
+        status_icon: isPassing ? 'white_check_mark' : 'x',
         status: 'failed',
         run_id: runId,
         pipeline_id: pipelineId,
