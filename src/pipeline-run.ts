@@ -79,7 +79,7 @@ export function buildRunResultTemplate({
   pipelineId: string
 }): string {
   const templateVariableToValue = {
-    status_icon: isPassing ? 'cross' : 'check',
+    status_icon: isPassing ? 'x' : 'white_check_mark',
     status: 'failed',
     run_id: runId,
     pipeline_id: pipelineId,
