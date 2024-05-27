@@ -32916,7 +32916,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.postComment = void 0;
 const github = __importStar(__nccwpck_require__(5438));
 async function postComment({ comment }) {
-    console.log(github);
     const octokit = github.getOctokit(process.env.MONTARA_GITHUB_TOKEN ?? '');
     const context = github.context;
     const { pull_request, repository } = context.payload;
