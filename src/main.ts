@@ -1,5 +1,13 @@
 import * as core from '@actions/core'
 import { wait } from './wait'
+import axios from 'axios'
+
+type PipelineRunStatus =
+  | 'pending'
+  | 'in_progress'
+  | 'failed'
+  | 'completed'
+  | 'conflict'
 
 /**
  * The main function for the action.
@@ -7,20 +15,48 @@ import { wait } from './wait'
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    const webhookUrl: string = core.getInput('webhookUrl')
 
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+    core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`)
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
+    const webhookResponse = await axios.post<{
+      runId: string
+      webhookId: string
+    }>(webhookUrl)
+    core.debug(
+      `Got response from webhook: ${JSON.stringify(webhookResponse?.data)}`
+    )
+    let counter = 0
+    while (counter < 10) {
+      core.debug(
+        `Checking status of pipeline run with runId: ${webhookResponse?.data?.runId} and webhookId: ${webhookResponse?.data?.webhookId}`
+      )
+      const runStatus = await axios.get<{
+        id: string
+        status: PipelineRunStatus
+      }>(
+        `https://staging-hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}&webhookId=${webhookResponse?.data?.webhookId}`
+      )
+      if (runStatus.data.status === 'completed') {
+        core.debug(`Pipeline run completed successfully!`)
+        core.setOutput('isPassing', true)
+        break
+      } else if (runStatus.data.status === 'failed') {
+        core.debug(
+          `Pipeline run failed. Here is the response: ${JSON.stringify(runStatus.data)}`
+        )
+        core.setOutput('isPassing', false)
+        break
+      }
+      await wait(10000)
+      counter++
+    }
   } catch (error) {
     // Fail the workflow run if an error occurs
-    if (error instanceof Error) core.setFailed(error.message)
+    if (error instanceof Error) {
+      core.error(`Error occurred: ${error.message}`)
+      core.setFailed(error.message)
+    }
   }
 }
