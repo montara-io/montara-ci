@@ -32701,9 +32701,9 @@ exports.PIPELINE_RUN_STATUS = void 0;
 exports.PIPELINE_RUN_STATUS = `
 # Montara CI report
 
-:{{smile}}: pipeline finished with status {{status}}
+:{{status_icon}}: pipeline finished with status {{status}}
 
-[View run in Montara](https://app.montara.io/app/pipelines/{{pipeline_id}}openModalRunId={{run_id}})
+[View run in Montara](https://{{montara_prefix}}.montara.io/app/pipelines/{{pipeline_id}}openModalRunId={{run_id}})
 
 `;
 
@@ -32799,7 +32799,6 @@ const core = __importStar(__nccwpck_require__(2186));
 const wait_1 = __nccwpck_require__(5259);
 const pipeline_run_1 = __nccwpck_require__(1603);
 const github_1 = __nccwpck_require__(978);
-const comment_templates_1 = __nccwpck_require__(9013);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -32820,7 +32819,12 @@ async function run() {
             });
             if (['completed', 'failed'].includes(status)) {
                 await (0, github_1.postComment)({
-                    comment: comment_templates_1.PIPELINE_RUN_STATUS.replaceAll('{{status}}', status)
+                    comment: (0, pipeline_run_1.buildRunResultTemplate)({
+                        isPassing: status === 'completed',
+                        isStaging,
+                        runId,
+                        pipelineId: webhookId
+                    })
                 });
                 if (status === 'completed') {
                     core.debug(`Pipeline run completed successfully!`);
@@ -32905,15 +32909,19 @@ async function getRunStatus({ runId, webhookId, isStaging }) {
         }
     });
     core.debug(`Got response from status check: ${JSON.stringify(runStatus.data)}`);
-    return { status: runStatus.data.status, data: runStatus.data };
+    return {
+        status: runStatus.data.status,
+        data: runStatus.data
+    };
 }
 exports.getRunStatus = getRunStatus;
-function buildRunResultTemplate({ isPassing }) {
+function buildRunResultTemplate({ isPassing, isStaging, runId, pipelineId }) {
     const templateVariableToValue = {
         status_icon: isPassing ? 'cross' : 'check',
         status: 'failed',
-        run_id: '567',
-        pipeline_id: '123'
+        run_id: runId,
+        pipeline_id: pipelineId,
+        montara_prefix: isStaging ? 'staging' : 'app'
     };
     let result = comment_templates_1.PIPELINE_RUN_STATUS;
     for (const [key, value] of Object.entries(templateVariableToValue)) {

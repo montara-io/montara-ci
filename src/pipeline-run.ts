@@ -61,19 +61,29 @@ export async function getRunStatus({
     `Got response from status check: ${JSON.stringify(runStatus.data)}`
   )
 
-  return { status: runStatus.data.status, data: runStatus.data }
+  return {
+    status: runStatus.data.status,
+    data: runStatus.data
+  }
 }
 
 export function buildRunResultTemplate({
-  isPassing
+  isPassing,
+  isStaging,
+  runId,
+  pipelineId
 }: {
   isPassing: boolean
+  isStaging: boolean
+  runId: string
+  pipelineId: string
 }): string {
   const templateVariableToValue = {
     status_icon: isPassing ? 'cross' : 'check',
     status: 'failed',
-    run_id: '567',
-    pipeline_id: '123'
+    run_id: runId,
+    pipeline_id: pipelineId,
+    montara_prefix: isStaging ? 'staging' : 'app'
   }
 
   let result = PIPELINE_RUN_STATUS

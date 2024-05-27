@@ -1,9 +1,12 @@
 import * as core from '@actions/core'
 import { wait } from './wait'
 
-import { getRunStatus, triggerPipelineFromWebhookUrl } from './pipeline-run'
+import {
+  buildRunResultTemplate,
+  getRunStatus,
+  triggerPipelineFromWebhookUrl
+} from './pipeline-run'
 import { postComment } from './github'
-import { PIPELINE_RUN_STATUS } from './comment-templates'
 
 /**
  * The main function for the action.
@@ -28,7 +31,12 @@ export async function run(): Promise<void> {
       })
       if (['completed', 'failed'].includes(status)) {
         await postComment({
-          comment: PIPELINE_RUN_STATUS.replaceAll('{{status}}', status)
+          comment: buildRunResultTemplate({
+            isPassing: status === 'completed',
+            isStaging,
+            runId,
+            pipelineId: webhookId
+          })
         })
         if (status === 'completed') {
           core.debug(`Pipeline run completed successfully!`)
