@@ -28465,19 +28465,23 @@ async function run() {
         // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
         core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`);
         const webhookResponse = await axios_1.default.post(webhookUrl);
-        core.debug(`Response: ${JSON.stringify(webhookResponse)}`);
-        const counter = 0;
+        core.debug(`Got response from webhook: ${JSON.stringify(webhookResponse?.data)}`);
+        let counter = 0;
         while (counter < 10) {
+            core.debug(`Checking status of pipeline run with runId: ${webhookResponse?.data?.runId}`);
             const runStatus = await axios_1.default.get(`https://hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}`);
             if (runStatus.data.status === 'completed') {
+                core.debug(`Pipeline run completed successfully!`);
                 core.setOutput('isPassing', true);
                 break;
             }
             else if (runStatus.data.status === 'failed') {
+                core.debug(`Pipeline run failed. Here is the response: ${JSON.stringify(runStatus.data)}`);
                 core.setOutput('isPassing', false);
                 break;
             }
-            await (0, wait_1.wait)(1000);
+            await (0, wait_1.wait)(10000);
+            counter++;
         }
     }
     catch (error) {
