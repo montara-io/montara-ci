@@ -45,7 +45,7 @@ export async function getRunStatus({
     status: PipelineRunStatus
   }
 }> {
-  const url = `https://hooks${isStaging ? '-staging' : ''}.montara.io/pipeline/run/status`
+  const url = `https://${isStaging ? 'staging-' : ''}hooks.montara.io/pipeline/run/status`
 
   const runStatus = await axios.get<{
     id: string
