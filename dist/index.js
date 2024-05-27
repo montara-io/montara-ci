@@ -28469,10 +28469,14 @@ async function run() {
         let counter = 0;
         await (0, wait_1.wait)(2000);
         while (counter < 10) {
-            // const url = `https://staging-hooks.montara.io/pipeline/run/status?runId=717fe810-0a67-48f7-bb5e-a086da134082&webhookId=36a07953-feac-4de5-a2e8-fbcbe2373e57`
-            const url = `https://staging-hooks.montara.io/pipeline/run/status?runId=${runId.toString().trim()}&webhookId=${webhookId.toString().trim()}`;
+            const url = `https://staging-hooks.montara.io/pipeline/run/status`;
             core.debug(`Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter} with url ${url}`);
-            const runStatus = await axios_1.default.get(url);
+            const runStatus = await axios_1.default.get(url, {
+                params: {
+                    runId,
+                    webhookId
+                }
+            });
             core.debug(`Got response from status check: ${JSON.stringify(runStatus.data)}`);
             if (runStatus.data.status === 'completed') {
                 core.debug(`Pipeline run completed successfully!`);

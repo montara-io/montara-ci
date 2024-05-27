@@ -32,8 +32,7 @@ export async function run(): Promise<void> {
     let counter = 0
     await wait(2000)
     while (counter < 10) {
-      // const url = `https://staging-hooks.montara.io/pipeline/run/status?runId=717fe810-0a67-48f7-bb5e-a086da134082&webhookId=36a07953-feac-4de5-a2e8-fbcbe2373e57`
-      const url = `https://staging-hooks.montara.io/pipeline/run/status?runId=${runId.toString().trim()}&webhookId=${webhookId.toString().trim()}`
+      const url = `https://staging-hooks.montara.io/pipeline/run/status`
 
       core.debug(
         `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter} with url ${url}`
@@ -41,7 +40,12 @@ export async function run(): Promise<void> {
       const runStatus = await axios.get<{
         id: string
         status: PipelineRunStatus
-      }>(url)
+      }>(url, {
+        params: {
+          runId,
+          webhookId
+        }
+      })
       core.debug(
         `Got response from status check: ${JSON.stringify(runStatus.data)}`
       )
