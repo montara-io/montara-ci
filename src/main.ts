@@ -29,15 +29,19 @@ export async function run(): Promise<void> {
     )
     let counter = 0
     while (counter < 10) {
+      const url = `https://staging-hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}&webhookId=${webhookResponse?.data?.webhookId}`
       core.debug(
         `Checking status of pipeline run with runId: ${webhookResponse?.data?.runId} and webhookId: ${webhookResponse?.data?.webhookId}`
       )
       const runStatus = await axios.get<{
         id: string
         status: PipelineRunStatus
-      }>(
-        `https://staging-hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}&webhookId=${webhookResponse?.data?.webhookId}`
-      )
+      }>(url, {
+        params: {
+          runId: webhookResponse?.data?.runId,
+          webhookId: webhookResponse?.data?.webhookId
+        }
+      })
       core.debug(
         `Got response from status check: ${JSON.stringify(runStatus.data)}`
       )
