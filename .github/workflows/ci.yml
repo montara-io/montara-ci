@@ -52,6 +52,9 @@ jobs:
       - name: Checkout
         id: checkout
         uses: actions/checkout@v4
+      - name: Install Dependencies
+        id: npm-install
+        run: npm install
 
       - name: Test Local Action
         id: test-action
