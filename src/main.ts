@@ -38,6 +38,9 @@ export async function run(): Promise<void> {
       }>(
         `https://staging-hooks.montara.io/pipeline/run/status?runId=${webhookResponse?.data?.runId}&webhookId=${webhookResponse?.data?.webhookId}`
       )
+      core.debug(
+        `Got response from status check: ${JSON.stringify(runStatus.data)}`
+      )
       if (runStatus.data.status === 'completed') {
         core.debug(`Pipeline run completed successfully!`)
         core.setOutput('isPassing', true)
