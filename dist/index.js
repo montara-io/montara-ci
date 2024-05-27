@@ -28469,7 +28469,7 @@ async function run() {
         let counter = 0;
         await (0, wait_1.wait)(2000);
         while (counter < 10) {
-            const url = `https://staging-hooks.montara.io/pipeline/run/status`;
+            const url = `https://hooks.montara.io/pipeline/run/status`;
             core.debug(`Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter} with url ${url}`);
             const runStatus = await axios_1.default.get(url, {
                 params: {

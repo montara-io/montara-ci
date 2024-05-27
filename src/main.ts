@@ -32,7 +32,7 @@ export async function run(): Promise<void> {
     let counter = 0
     await wait(2000)
     while (counter < 10) {
-      const url = `https://staging-hooks.montara.io/pipeline/run/status`
+      const url = `https://hooks.montara.io/pipeline/run/status`
 
       core.debug(
         `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter} with url ${url}`
