@@ -26,7 +26,7 @@ export async function run(): Promise<void> {
         webhookId,
         isStaging
       })
-      if (['pending', 'in_progress'].includes(status)) {
+      if (['completed', 'failed'].includes(status)) {
         await postComment({
           comment: PIPELINE_RUN_STATUS.replaceAll('{{status}}', status)
         })

@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import axios from 'axios'
+import { PIPELINE_RUN_STATUS } from './comment-templates'
 
 type PipelineRunStatus =
   | 'pending'
@@ -61,4 +62,25 @@ export async function getRunStatus({
   )
 
   return { status: runStatus.data.status, data: runStatus.data }
+}
+
+export function buildRunResultTemplate({
+  isPassing
+}: {
+  isPassing: boolean
+}): string {
+  const templateVariableToValue = {
+    status_icon: isPassing ? 'cross' : 'check',
+    status: 'failed',
+    run_id: '567',
+    pipeline_id: '123'
+  }
+
+  let result = PIPELINE_RUN_STATUS
+
+  for (const [key, value] of Object.entries(templateVariableToValue)) {
+    result = result.replaceAll(`{{${key}}}`, value)
+  }
+
+  return result
 }
