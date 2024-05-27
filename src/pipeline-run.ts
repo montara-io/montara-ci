@@ -41,16 +41,14 @@ export async function getRunStatus({
   isStaging: boolean
 }): Promise<{
   status: PipelineRunStatus
-  data: {
-    id: string
-    status: PipelineRunStatus
-  }
+  pipelineId: string
 }> {
   const url = `https://${isStaging ? 'staging-' : ''}hooks.montara.io/pipeline/run/status`
 
   const runStatus = await axios.get<{
     id: string
     status: PipelineRunStatus
+    pipelineId: string
   }>(url, {
     params: {
       runId,
@@ -60,10 +58,13 @@ export async function getRunStatus({
   core.debug(
     `Got response from status check: ${JSON.stringify(runStatus.data)}`
   )
-
+  runStatus?.data?.status === 'failed' &&
+    core.debug(
+      `Pipeline run failed. Here is the response: ${JSON.stringify(runStatus?.data)}`
+    )
   return {
     status: runStatus.data.status,
-    data: runStatus.data
+    pipelineId: runStatus.data.pipelineId
   }
 }
 

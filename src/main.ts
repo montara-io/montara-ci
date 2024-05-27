@@ -24,7 +24,7 @@ export async function run(): Promise<void> {
       core.debug(
         `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}`
       )
-      const { status, data } = await getRunStatus({
+      const { status, pipelineId } = await getRunStatus({
         runId,
         webhookId,
         isStaging
@@ -35,7 +35,7 @@ export async function run(): Promise<void> {
             isPassing: status === 'completed',
             isStaging,
             runId,
-            pipelineId: webhookId
+            pipelineId
           })
         })
         if (status === 'completed') {
@@ -43,13 +43,7 @@ export async function run(): Promise<void> {
           core.setOutput('isPassing', true)
           break
         } else if (status === 'failed') {
-          core.debug(
-            `Pipeline run failed. Here is the response: ${JSON.stringify(data)}`
-          )
           core.setOutput('isPassing', false)
-          core.setFailed(
-            `Pipeline run failed with the following response: ${JSON.stringify(data)}`
-          )
 
           break
         }

@@ -32812,7 +32812,7 @@ async function run() {
         await (0, wait_1.wait)(2000);
         while (counter < 10) {
             core.debug(`Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}`);
-            const { status, data } = await (0, pipeline_run_1.getRunStatus)({
+            const { status, pipelineId } = await (0, pipeline_run_1.getRunStatus)({
                 runId,
                 webhookId,
                 isStaging
@@ -32823,7 +32823,7 @@ async function run() {
                         isPassing: status === 'completed',
                         isStaging,
                         runId,
-                        pipelineId: webhookId
+                        pipelineId
                     })
                 });
                 if (status === 'completed') {
@@ -32832,9 +32832,7 @@ async function run() {
                     break;
                 }
                 else if (status === 'failed') {
-                    core.debug(`Pipeline run failed. Here is the response: ${JSON.stringify(data)}`);
                     core.setOutput('isPassing', false);
-                    core.setFailed(`Pipeline run failed with the following response: ${JSON.stringify(data)}`);
                     break;
                 }
                 counter = 10;
@@ -32909,9 +32907,11 @@ async function getRunStatus({ runId, webhookId, isStaging }) {
         }
     });
     core.debug(`Got response from status check: ${JSON.stringify(runStatus.data)}`);
+    runStatus?.data?.status === 'failed' &&
+        core.debug(`Pipeline run failed. Here is the response: ${JSON.stringify(runStatus?.data)}`);
     return {
         status: runStatus.data.status,
-        data: runStatus.data
+        pipelineId: runStatus.data.pipelineId
     };
 }
 exports.getRunStatus = getRunStatus;
