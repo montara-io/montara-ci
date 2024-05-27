@@ -5,8 +5,9 @@ export async function postComment({
 }: {
   comment: string
 }): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const octokit = new (github as any).getOctokit(process.env.GITHUB_TOKEN ?? '')
+  console.log(github)
+
+  const octokit = github.getOctokit(process.env.GITHUB_TOKEN ?? '')
   const context = github.context
   const { pull_request, repository } = context.payload
 
@@ -16,8 +17,8 @@ export async function postComment({
   }
 
   const prNumber = pull_request.number
-  const owner = repository?.owner.login
-  const repo = repository?.name
+  const owner = repository?.owner.login ?? ''
+  const repo = repository?.name ?? ''
 
   await octokit.rest.issues.createComment({
     owner,

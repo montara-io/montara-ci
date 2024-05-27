@@ -32896,8 +32896,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.postComment = void 0;
 const github_1 = __importDefault(__nccwpck_require__(5438));
 async function postComment({ comment }) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const octokit = new github_1.default.getOctokit(process.env.GITHUB_TOKEN ?? '');
+    console.log(github_1.default);
+    const octokit = github_1.default.getOctokit(process.env.GITHUB_TOKEN ?? '');
     const context = github_1.default.context;
     const { pull_request, repository } = context.payload;
     if (!pull_request) {
@@ -32905,8 +32905,8 @@ async function postComment({ comment }) {
         return;
     }
     const prNumber = pull_request.number;
-    const owner = repository?.owner.login;
-    const repo = repository?.name;
+    const owner = repository?.owner.login ?? '';
+    const repo = repository?.name ?? '';
     await octokit.rest.issues.createComment({
         owner,
         repo,
