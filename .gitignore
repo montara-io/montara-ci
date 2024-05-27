@@ -101,7 +101,3 @@ __tests__/runner/*
 .idea
 .vscode
 *.code-workspace
-
-
-# Dadi
-dist
