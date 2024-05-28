@@ -32756,6 +32756,7 @@ async function postComment({ comment }) {
     const octokit = github.getOctokit(process.env.MONTARA_GITHUB_TOKEN ?? '');
     const context = github.context;
     const { pull_request, repository } = context.payload;
+    console.log('context payload', context.payload);
     if (!pull_request) {
         console.log('No pull request found in the context');
         return;
@@ -32821,6 +32822,10 @@ async function run() {
         const webhookUrl = core.getInput('webhookUrl');
         const isStaging = core.getInput('isStaging') === 'true';
         const numRetries = Number(core.getInput('numRetries')) || 10;
+        if (!process.env.MONTARA_GITHUB_TOKEN) {
+            core.setFailed('MONTARA_GITHUB_TOKEN environment variable is required to run this action');
+            return;
+        }
         core.debug(`Montara GitHub Action is running with webhookUrl: ${webhookUrl}, isStaging: ${isStaging} and numRetries: ${numRetries}`);
         const { runId, webhookId } = await (0, pipeline_run_1.triggerPipelineFromWebhookUrl)(webhookUrl);
         let counter = 0;
