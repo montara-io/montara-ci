@@ -26,7 +26,7 @@ export async function run(): Promise<void> {
     await wait(2000)
     while (counter < numRetries) {
       core.debug(
-        `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}`
+        `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}/${numRetries}`
       )
       const { status, pipelineId } = await getRunStatus({
         runId,

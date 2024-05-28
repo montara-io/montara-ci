@@ -32703,7 +32703,7 @@ exports.PIPELINE_RUN_STATUS = `
 
 :{{status_icon}}: pipeline finished with status {{status}}
 
-[View run in Montara](https://{{montara_prefix}}.montara.io/app/pipelines/{{pipeline_id}}&openModalRunId={{run_id}})
+[View run in Montara](https://{{montara_prefix}}.montara.io/app/pipelines/{{pipeline_id}}?openModalRunId={{run_id}})
 
 `;
 
@@ -32813,7 +32813,7 @@ async function run() {
         let counter = 0;
         await (0, wait_1.wait)(2000);
         while (counter < numRetries) {
-            core.debug(`Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}`);
+            core.debug(`Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}/${numRetries}`);
             const { status, pipelineId } = await (0, pipeline_run_1.getRunStatus)({
                 runId,
                 webhookId,
