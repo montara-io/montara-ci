@@ -16,13 +16,17 @@ export async function run(): Promise<void> {
   try {
     const webhookUrl: string = core.getInput('webhookUrl')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
+    const numRetries = Number(core.getInput('numRetries')) || 10
+    core.debug(
+      `Montara GitHub Action is running with webhookUrl: ${webhookUrl}, isStaging: ${isStaging} and numRetries: ${numRetries}`
+    )
 
     const { runId, webhookId } = await triggerPipelineFromWebhookUrl(webhookUrl)
     let counter = 0
     await wait(2000)
-    while (counter < 10) {
+    while (counter < numRetries) {
       core.debug(
-        `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}`
+        `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}/${numRetries}`
       )
       const { status, pipelineId } = await getRunStatus({
         runId,
@@ -44,10 +48,11 @@ export async function run(): Promise<void> {
           break
         } else if (status === 'failed') {
           core.setOutput('isPassing', false)
+          core.setFailed(`Pipeline run failed`)
 
           break
         }
-        counter = 10
+        counter = numRetries
       }
       await wait(10000)
       counter++

@@ -23,7 +23,9 @@ export async function triggerPipelineFromWebhookUrl(
   } = await axios.post<{
     runId: string
     webhookId: string
-  }>(webhookUrl)
+  }>(webhookUrl, {
+    runEnvironment: 'Staging'
+  })
   core.debug(
     `Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`
   )
@@ -55,9 +57,7 @@ export async function getRunStatus({
       webhookId
     }
   })
-  core.debug(
-    `Got response from status check: ${JSON.stringify(runStatus.data)}`
-  )
+
   runStatus?.data?.status === 'failed' &&
     core.debug(
       `Pipeline run failed. Here is the response: ${JSON.stringify(runStatus?.data)}`

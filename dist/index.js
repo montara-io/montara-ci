@@ -32703,7 +32703,7 @@ exports.PIPELINE_RUN_STATUS = `
 
 :{{status_icon}}: pipeline finished with status {{status}}
 
-[View run in Montara](https://{{montara_prefix}}.montara.io/app/pipelines/{{pipeline_id}}openModalRunId={{run_id}})
+[View run in Montara](https://{{montara_prefix}}.montara.io/app/pipelines/{{pipeline_id}}?openModalRunId={{run_id}})
 
 `;
 
@@ -32807,11 +32807,13 @@ async function run() {
     try {
         const webhookUrl = core.getInput('webhookUrl');
         const isStaging = core.getInput('isStaging') === 'true';
+        const numRetries = Number(core.getInput('numRetries')) || 10;
+        core.debug(`Montara GitHub Action is running with webhookUrl: ${webhookUrl}, isStaging: ${isStaging} and numRetries: ${numRetries}`);
         const { runId, webhookId } = await (0, pipeline_run_1.triggerPipelineFromWebhookUrl)(webhookUrl);
         let counter = 0;
         await (0, wait_1.wait)(2000);
-        while (counter < 10) {
-            core.debug(`Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}`);
+        while (counter < numRetries) {
+            core.debug(`Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}/${numRetries}`);
             const { status, pipelineId } = await (0, pipeline_run_1.getRunStatus)({
                 runId,
                 webhookId,
@@ -32833,9 +32835,10 @@ async function run() {
                 }
                 else if (status === 'failed') {
                     core.setOutput('isPassing', false);
+                    core.setFailed(`Pipeline run failed`);
                     break;
                 }
-                counter = 10;
+                counter = numRetries;
             }
             await (0, wait_1.wait)(10000);
             counter++;
@@ -32893,7 +32896,9 @@ const comment_templates_1 = __nccwpck_require__(9013);
 async function triggerPipelineFromWebhookUrl(webhookUrl) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
     core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`);
-    const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl);
+    const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
+        runEnvironment: 'Staging'
+    });
     core.debug(`Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`);
     return { runId, webhookId };
 }
@@ -32906,7 +32911,6 @@ async function getRunStatus({ runId, webhookId, isStaging }) {
             webhookId
         }
     });
-    core.debug(`Got response from status check: ${JSON.stringify(runStatus.data)}`);
     runStatus?.data?.status === 'failed' &&
         core.debug(`Pipeline run failed. Here is the response: ${JSON.stringify(runStatus?.data)}`);
     return {
