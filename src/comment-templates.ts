@@ -10,7 +10,7 @@ export const PIPELINE_RUN_STATUS = `
 ### Run duration
 {{runDuration}}
 
-### Models ({{numNodels}})
+### Models ({{numModels}})
 - ✅  Passed - {{numPassed}}
 - ❌  Failed - {{numFailed}}
 - ⏸️  Skipped - {{numSkipped}}

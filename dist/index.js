@@ -32710,7 +32710,7 @@ exports.PIPELINE_RUN_STATUS = `
 ### Run duration
 {{runDuration}}
 
-### Models ({{numNodels}})
+### Models ({{numModels}})
 - ✅  Passed - {{numPassed}}
 - ❌  Failed - {{numFailed}}
 - ⏸️  Skipped - {{numSkipped}}
@@ -32966,7 +32966,7 @@ function buildRunResultTemplate({ isPassing, isStaging, runId, pipelineId, runDu
         statusIcon: isPassing ? 'white_check_mark' : 'x',
         status: isPassing ? 'completed successfully' : 'failed',
         runId,
-        pipeline_id: pipelineId,
+        pipelineId,
         montaraPrefix: isStaging ? 'staging' : 'app',
         runDuration,
         numModels: numModels.toString(),

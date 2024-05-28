@@ -144,7 +144,7 @@ export function buildRunResultTemplate({
     statusIcon: isPassing ? 'white_check_mark' : 'x',
     status: isPassing ? 'completed successfully' : 'failed',
     runId,
-    pipeline_id: pipelineId,
+    pipelineId,
     montaraPrefix: isStaging ? 'staging' : 'app',
     runDuration,
     numModels: numModels.toString(),
