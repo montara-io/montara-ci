@@ -16,11 +16,12 @@ export async function run(): Promise<void> {
   try {
     const webhookUrl: string = core.getInput('webhookUrl')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
+    const numRetries = Number(core.getInput('numRetries')) || 10
 
     const { runId, webhookId } = await triggerPipelineFromWebhookUrl(webhookUrl)
     let counter = 0
     await wait(2000)
-    while (counter < 10) {
+    while (counter < numRetries) {
       core.debug(
         `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}`
       )
@@ -47,7 +48,7 @@ export async function run(): Promise<void> {
 
           break
         }
-        counter = 10
+        counter = numRetries
       }
       await wait(10000)
       counter++

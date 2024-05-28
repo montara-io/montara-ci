@@ -32807,10 +32807,11 @@ async function run() {
     try {
         const webhookUrl = core.getInput('webhookUrl');
         const isStaging = core.getInput('isStaging') === 'true';
+        const numRetries = Number(core.getInput('numRetries')) || 10;
         const { runId, webhookId } = await (0, pipeline_run_1.triggerPipelineFromWebhookUrl)(webhookUrl);
         let counter = 0;
         await (0, wait_1.wait)(2000);
-        while (counter < 10) {
+        while (counter < numRetries) {
             core.debug(`Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}`);
             const { status, pipelineId } = await (0, pipeline_run_1.getRunStatus)({
                 runId,
@@ -32835,7 +32836,7 @@ async function run() {
                     core.setOutput('isPassing', false);
                     break;
                 }
-                counter = 10;
+                counter = numRetries;
             }
             await (0, wait_1.wait)(10000);
             counter++;
