@@ -7,6 +7,7 @@ import {
   triggerPipelineFromWebhookUrl
 } from './pipeline-run'
 import { postComment } from './github'
+import { formatDuration } from './utils'
 
 /**
  * The main function for the action.
@@ -14,6 +15,7 @@ import { postComment } from './github'
  */
 export async function run(): Promise<void> {
   try {
+    const startTime = new Date().getTime()
     const webhookUrl: string = core.getInput('webhookUrl')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
     const numRetries = Number(core.getInput('numRetries')) || 10
@@ -28,18 +30,37 @@ export async function run(): Promise<void> {
       core.debug(
         `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}/${numRetries}`
       )
-      const { status, pipelineId } = await getRunStatus({
+      const {
+        status,
+        pipelineId,
+        numFailed,
+        numModels,
+        numPassed,
+        numSkipped
+      } = await getRunStatus({
         runId,
         webhookId,
         isStaging
       })
-      if (['completed', 'failed'].includes(status)) {
+      if (status === 'conflict') {
+        core.setOutput('isPassing', false)
+        core.setFailed(
+          `There is an existing pipeline run in progress. Please wait for it to complete before triggering a new run.`
+        )
+      } else if (['completed', 'failed'].includes(status)) {
         await postComment({
           comment: buildRunResultTemplate({
             isPassing: status === 'completed',
             isStaging,
             runId,
-            pipelineId
+            pipelineId,
+            numModels,
+            numPassed,
+            numFailed,
+            numSkipped,
+            runDuration: formatDuration(
+              (new Date().getTime() - startTime) / 1000
+            )
           })
         })
         if (status === 'completed') {
@@ -49,7 +70,6 @@ export async function run(): Promise<void> {
         } else if (status === 'failed') {
           core.setOutput('isPassing', false)
           core.setFailed(`Pipeline run failed`)
-
           break
         }
         counter = numRetries
