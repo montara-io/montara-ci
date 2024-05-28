@@ -32700,12 +32700,35 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PIPELINE_RUN_STATUS = void 0;
 exports.PIPELINE_RUN_STATUS = `
 # Montara CI report
+☑️ Set up a test environment for pipeline run
+☑️ Test run executed
 
-:{{status_icon}}: pipeline finished with status {{status}}
+:{{statusIcon}}: test run {{status}}
 
-[View run in Montara](https://{{montara_prefix}}.montara.io/app/pipelines/{{pipeline_id}}?openModalRunId={{run_id}})
+## Run details
 
+### Run duration
+{{runDuration}}
+
+### Models ({{numNodels}})
+- ✅  Passed - {{numPassed}}
+- ❌  Failed - {{numFailed}}
+- ⏸️  Skipped - {{numSkipped}}
+
+[View full run details in Montara](https://{{montaraPrefix}}.montara.io/app/pipelines/{{pipelineId}}?openModalRunId={{runId}})
 `;
+// # Montara CI report
+// ☑️ Set up a test environment for pipeline run
+// ☑️ Test run executed
+// :x: test run failed / completed successfully
+// ## Run details
+// ### Run duration
+// 4 minutes
+// ### Models (80)
+// - ✅  Passed - 72
+// - ❌  Failed - 8
+// - ⏸️  Skipped - 3
+// [View full run details in Montara](https://staging.montara.io/app/pipelines/47300c8c-8be3-443c-8a16-4ac09bdb98bc?openModalRunId=9c28a51a-591a-403f-8e14-b7fc6380e2c2)
 
 
 /***/ }),
@@ -32799,12 +32822,14 @@ const core = __importStar(__nccwpck_require__(2186));
 const wait_1 = __nccwpck_require__(5259);
 const pipeline_run_1 = __nccwpck_require__(1603);
 const github_1 = __nccwpck_require__(978);
+const utils_1 = __nccwpck_require__(1314);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 async function run() {
     try {
+        const startTime = new Date().getTime();
         const webhookUrl = core.getInput('webhookUrl');
         const isStaging = core.getInput('isStaging') === 'true';
         const numRetries = Number(core.getInput('numRetries')) || 10;
@@ -32814,7 +32839,7 @@ async function run() {
         await (0, wait_1.wait)(2000);
         while (counter < numRetries) {
             core.debug(`Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}/${numRetries}`);
-            const { status, pipelineId } = await (0, pipeline_run_1.getRunStatus)({
+            const { status, pipelineId, numFailed, numModels, numPassed, numSkipped } = await (0, pipeline_run_1.getRunStatus)({
                 runId,
                 webhookId,
                 isStaging
@@ -32825,7 +32850,12 @@ async function run() {
                         isPassing: status === 'completed',
                         isStaging,
                         runId,
-                        pipelineId
+                        pipelineId,
+                        numModels,
+                        numPassed,
+                        numFailed,
+                        numSkipped,
+                        runDuration: (0, utils_1.formatNumber)(new Date().getTime() - startTime)
                     })
                 });
                 if (status === 'completed') {
@@ -32889,10 +32919,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.buildRunResultTemplate = exports.getRunStatus = exports.triggerPipelineFromWebhookUrl = void 0;
+exports.buildRunResultTemplate = exports.getRunStatus = exports.triggerPipelineFromWebhookUrl = exports.ModelRunStatus = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const axios_1 = __importDefault(__nccwpck_require__(8757));
 const comment_templates_1 = __nccwpck_require__(9013);
+// eslint-disable-next-line no-shadow
+var ModelRunStatus;
+(function (ModelRunStatus) {
+    ModelRunStatus["Success"] = "success";
+    ModelRunStatus["Error"] = "error";
+    ModelRunStatus["Skipped"] = "skipped";
+})(ModelRunStatus || (exports.ModelRunStatus = ModelRunStatus = {}));
+// eslint-disable-next-line no-shadow
+var RunEnvironment;
+(function (RunEnvironment) {
+    RunEnvironment["Staging"] = "Staging";
+    RunEnvironment["Production"] = "Production";
+})(RunEnvironment || (RunEnvironment = {}));
 async function triggerPipelineFromWebhookUrl(webhookUrl) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
     core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`);
@@ -32911,21 +32954,33 @@ async function getRunStatus({ runId, webhookId, isStaging }) {
             webhookId
         }
     });
-    runStatus?.data?.status === 'failed' &&
-        core.debug(`Pipeline run failed. Here is the response: ${JSON.stringify(runStatus?.data)}`);
+    core.debug(`Pipeline run status response: ${JSON.stringify(runStatus?.data)}`);
+    const numModels = runStatus?.data?.modelRunDetails?.length ?? 0;
+    const numPassed = runStatus?.data?.modelRunDetails?.filter(model => model.status === ModelRunStatus.Success).length ?? 0;
+    const numFailed = runStatus?.data?.modelRunDetails?.filter(model => model.status === ModelRunStatus.Error).length ?? 0;
+    const numSkipped = runStatus?.data?.modelRunDetails?.filter(model => model.status === ModelRunStatus.Skipped).length ?? 0;
     return {
         status: runStatus.data.status,
-        pipelineId: runStatus.data.pipelineId
+        pipelineId: runStatus.data.pipelineId,
+        numModels,
+        numPassed,
+        numFailed,
+        numSkipped
     };
 }
 exports.getRunStatus = getRunStatus;
-function buildRunResultTemplate({ isPassing, isStaging, runId, pipelineId }) {
+function buildRunResultTemplate({ isPassing, isStaging, runId, pipelineId, runDuration, numModels, numPassed, numFailed, numSkipped }) {
     const templateVariableToValue = {
-        status_icon: isPassing ? 'white_check_mark' : 'x',
-        status: 'failed',
-        run_id: runId,
+        statusIcon: isPassing ? 'white_check_mark' : 'x',
+        status: isPassing ? 'completed successfully' : 'failed',
+        runId,
         pipeline_id: pipelineId,
-        montara_prefix: isStaging ? 'staging' : 'app'
+        montaraPrefix: isStaging ? 'staging' : 'app',
+        runDuration,
+        numModels: numModels.toString(),
+        numPassed: numPassed.toString(),
+        numFailed: numFailed.toString(),
+        numSkipped: numSkipped.toString()
     };
     let result = comment_templates_1.PIPELINE_RUN_STATUS;
     for (const [key, value] of Object.entries(templateVariableToValue)) {
@@ -32934,6 +32989,21 @@ function buildRunResultTemplate({ isPassing, isStaging, runId, pipelineId }) {
     return result;
 }
 exports.buildRunResultTemplate = buildRunResultTemplate;
+
+
+/***/ }),
+
+/***/ 1314:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.formatNumber = void 0;
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+exports.formatNumber = formatNumber;
 
 
 /***/ }),

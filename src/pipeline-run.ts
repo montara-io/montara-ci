@@ -3,12 +3,13 @@ import axios from 'axios'
 import { PIPELINE_RUN_STATUS } from './comment-templates'
 import { DbtRunErrors } from '@montara-io/error-parsing'
 
+// eslint-disable-next-line no-shadow
 export enum ModelRunStatus {
   Success = 'success',
   Error = 'error',
   Skipped = 'skipped'
 }
-
+// eslint-disable-next-line no-shadow
 enum RunEnvironment {
   Staging = 'Staging',
   Production = 'Production'
@@ -142,7 +143,7 @@ export function buildRunResultTemplate({
   const templateVariableToValue = {
     statusIcon: isPassing ? 'white_check_mark' : 'x',
     status: isPassing ? 'completed successfully' : 'failed',
-    runId: runId,
+    runId,
     pipeline_id: pipelineId,
     montaraPrefix: isStaging ? 'staging' : 'app',
     runDuration,
