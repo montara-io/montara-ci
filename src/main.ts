@@ -7,6 +7,7 @@ import {
   triggerPipelineFromWebhookUrl
 } from './pipeline-run'
 import { postComment } from './github'
+import { formatNumber } from './utils'
 
 /**
  * The main function for the action.
@@ -14,6 +15,7 @@ import { postComment } from './github'
  */
 export async function run(): Promise<void> {
   try {
+    const startTime = new Date().getTime()
     const webhookUrl: string = core.getInput('webhookUrl')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
     const numRetries = Number(core.getInput('numRetries')) || 10
@@ -28,7 +30,14 @@ export async function run(): Promise<void> {
       core.debug(
         `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}/${numRetries}`
       )
-      const { status, pipelineId } = await getRunStatus({
+      const {
+        status,
+        pipelineId,
+        numFailed,
+        numModels,
+        numPassed,
+        numSkipped
+      } = await getRunStatus({
         runId,
         webhookId,
         isStaging
@@ -39,7 +48,12 @@ export async function run(): Promise<void> {
             isPassing: status === 'completed',
             isStaging,
             runId,
-            pipelineId
+            pipelineId,
+            numModels,
+            numPassed,
+            numFailed,
+            numSkipped,
+            runDuration: formatNumber(new Date().getTime() - startTime)
           })
         })
         if (status === 'completed') {

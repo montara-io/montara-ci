@@ -1,6 +1,42 @@
 import * as core from '@actions/core'
 import axios from 'axios'
 import { PIPELINE_RUN_STATUS } from './comment-templates'
+import { DbtRunErrors } from '@montara-io/error-parsing'
+
+export enum ModelRunStatus {
+  Success = 'success',
+  Error = 'error',
+  Skipped = 'skipped'
+}
+
+enum RunEnvironment {
+  Staging = 'Staging',
+  Production = 'Production'
+}
+
+type GetPipelineRunStatus = {
+  id: string
+  status: PipelineRunStatus
+  pipelineId: string
+  errors: DbtRunErrors
+  modelRunDetails: {
+    name: string
+    owner: {
+      id: string
+      email: string
+    }
+    lastUpdatedOn: Date
+    lastUpdatedBy: {
+      id: string
+      email: string
+    }
+    runEnvironment: RunEnvironment
+    status: ModelRunStatus
+    error: string
+    executionTime: number
+    rowsAffected?: number
+  }[]
+}
 
 type PipelineRunStatus =
   | 'pending'
@@ -44,27 +80,41 @@ export async function getRunStatus({
 }): Promise<{
   status: PipelineRunStatus
   pipelineId: string
+  numModels: number
+  numPassed: number
+  numFailed: number
+  numSkipped: number
 }> {
   const url = `https://${isStaging ? 'staging-' : ''}hooks.montara.io/pipeline/run/status`
 
-  const runStatus = await axios.get<{
-    id: string
-    status: PipelineRunStatus
-    pipelineId: string
-  }>(url, {
+  const runStatus = await axios.get<GetPipelineRunStatus>(url, {
     params: {
       runId,
       webhookId
     }
   })
 
-  runStatus?.data?.status === 'failed' &&
-    core.debug(
-      `Pipeline run failed. Here is the response: ${JSON.stringify(runStatus?.data)}`
-    )
+  core.debug(`Pipeline run status response: ${JSON.stringify(runStatus?.data)}`)
+  const numModels = runStatus?.data?.modelRunDetails?.length ?? 0
+  const numPassed =
+    runStatus?.data?.modelRunDetails?.filter(
+      model => model.status === ModelRunStatus.Success
+    ).length ?? 0
+  const numFailed =
+    runStatus?.data?.modelRunDetails?.filter(
+      model => model.status === ModelRunStatus.Error
+    ).length ?? 0
+  const numSkipped =
+    runStatus?.data?.modelRunDetails?.filter(
+      model => model.status === ModelRunStatus.Skipped
+    ).length ?? 0
   return {
     status: runStatus.data.status,
-    pipelineId: runStatus.data.pipelineId
+    pipelineId: runStatus.data.pipelineId,
+    numModels,
+    numPassed,
+    numFailed,
+    numSkipped
   }
 }
 
@@ -72,19 +122,34 @@ export function buildRunResultTemplate({
   isPassing,
   isStaging,
   runId,
-  pipelineId
+  pipelineId,
+  runDuration,
+  numModels,
+  numPassed,
+  numFailed,
+  numSkipped
 }: {
   isPassing: boolean
   isStaging: boolean
   runId: string
   pipelineId: string
+  runDuration: string
+  numModels: number
+  numPassed: number
+  numFailed: number
+  numSkipped: number
 }): string {
   const templateVariableToValue = {
-    status_icon: isPassing ? 'white_check_mark' : 'x',
-    status: 'failed',
-    run_id: runId,
+    statusIcon: isPassing ? 'white_check_mark' : 'x',
+    status: isPassing ? 'completed successfully' : 'failed',
+    runId: runId,
     pipeline_id: pipelineId,
-    montara_prefix: isStaging ? 'staging' : 'app'
+    montaraPrefix: isStaging ? 'staging' : 'app',
+    runDuration,
+    numModels: numModels.toString(),
+    numPassed: numPassed.toString(),
+    numFailed: numFailed.toString(),
+    numSkipped: numSkipped.toString()
   }
 
   let result = PIPELINE_RUN_STATUS
