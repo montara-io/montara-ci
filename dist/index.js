@@ -32703,7 +32703,7 @@ exports.PIPELINE_RUN_STATUS = `
 
 :{{status_icon}}: pipeline finished with status {{status}}
 
-[View run in Montara](https://{{montara_prefix}}.montara.io/app/pipelines/{{pipeline_id}}openModalRunId={{run_id}})
+[View run in Montara](https://{{montara_prefix}}.montara.io/app/pipelines/{{pipeline_id}}&openModalRunId={{run_id}})
 
 `;
 
