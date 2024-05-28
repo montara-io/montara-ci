@@ -32717,18 +32717,6 @@ exports.PIPELINE_RUN_STATUS = `
 
 [View full run details in Montara](https://{{montaraPrefix}}.montara.io/app/pipelines/{{pipelineId}}?openModalRunId={{runId}})
 `;
-// # Montara CI report
-// ☑️ Set up a test environment for pipeline run
-// ☑️ Test run executed
-// :x: test run failed / completed successfully
-// ## Run details
-// ### Run duration
-// 4 minutes
-// ### Models (80)
-// - ✅  Passed - 72
-// - ❌  Failed - 8
-// - ⏸️  Skipped - 3
-// [View full run details in Montara](https://staging.montara.io/app/pipelines/47300c8c-8be3-443c-8a16-4ac09bdb98bc?openModalRunId=9c28a51a-591a-403f-8e14-b7fc6380e2c2)
 
 
 /***/ }),
@@ -32859,7 +32847,7 @@ async function run() {
                         numPassed,
                         numFailed,
                         numSkipped,
-                        runDuration: (0, utils_1.formatNumber)(new Date().getTime() - startTime)
+                        runDuration: (0, utils_1.formatDuration)((new Date().getTime() - startTime) / 1000)
                     })
                 });
                 if (status === 'completed') {
@@ -33003,11 +32991,39 @@ exports.buildRunResultTemplate = buildRunResultTemplate;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.formatNumber = void 0;
+exports.formatDuration = exports.formatNumber = void 0;
 function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 exports.formatNumber = formatNumber;
+function formatDuration(durationSeconds, { minimumValue = 1, isAccurate = false } = {}) {
+    if (durationSeconds < minimumValue) {
+        return '-';
+        // return `${Math.round(durationSeconds * 60)} Mins.`;
+    }
+    else if (durationSeconds < 60) {
+        return `${formatNumber(Math.round(durationSeconds))} Sec${Math.round(durationSeconds) === 1 ? '' : 's'}.`;
+    }
+    else if (durationSeconds < 3600) {
+        const minutes = Math.floor(durationSeconds / 60);
+        const seconds = Math.round(durationSeconds % 60);
+        const minText = `${formatNumber(minutes)} Min${minutes === 1 ? '' : 's'}.`;
+        const secText = isAccurate && seconds > 0
+            ? ` ${formatNumber(seconds)} Sec${seconds === 1 ? '' : 's'}.`
+            : '';
+        return `${minText}${secText}`;
+    }
+    else {
+        const hours = Math.floor(durationSeconds / 3600);
+        const minutes = Math.round((durationSeconds % 3600) / 60);
+        const hourText = `${hours} Hr${hours === 1 ? '' : 's'}.`;
+        const minText = isAccurate && minutes > 0
+            ? ` ${minutes} Min${minutes === 1 ? '' : 's'}.`
+            : '';
+        return `${hourText}${minText}`;
+    }
+}
+exports.formatDuration = formatDuration;
 
 
 /***/ }),

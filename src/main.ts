@@ -7,7 +7,7 @@ import {
   triggerPipelineFromWebhookUrl
 } from './pipeline-run'
 import { postComment } from './github'
-import { formatNumber } from './utils'
+import { formatDuration } from './utils'
 
 /**
  * The main function for the action.
@@ -58,7 +58,9 @@ export async function run(): Promise<void> {
             numPassed,
             numFailed,
             numSkipped,
-            runDuration: formatNumber(new Date().getTime() - startTime)
+            runDuration: formatDuration(
+              (new Date().getTime() - startTime) / 1000
+            )
           })
         })
         if (status === 'completed') {
