@@ -68,7 +68,6 @@ export async function run(): Promise<void> {
         } else if (status === 'failed') {
           core.setOutput('isPassing', false)
           core.setFailed(`Pipeline run failed`)
-
           break
         }
         counter = numRetries
