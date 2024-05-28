@@ -32893,7 +32893,9 @@ const comment_templates_1 = __nccwpck_require__(9013);
 async function triggerPipelineFromWebhookUrl(webhookUrl) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
     core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`);
-    const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl);
+    const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
+        runEnvironment: 'Staging'
+    });
     core.debug(`Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`);
     return { runId, webhookId };
 }

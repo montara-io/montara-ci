@@ -23,7 +23,9 @@ export async function triggerPipelineFromWebhookUrl(
   } = await axios.post<{
     runId: string
     webhookId: string
-  }>(webhookUrl)
+  }>(webhookUrl, {
+    runEnvironment: 'Staging'
+  })
   core.debug(
     `Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`
   )
