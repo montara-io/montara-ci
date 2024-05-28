@@ -8,7 +8,6 @@ export async function postComment({
   const octokit = github.getOctokit(process.env.MONTARA_GITHUB_TOKEN ?? '')
   const context = github.context
   const { pull_request, repository } = context.payload
-  console.log('context payload', context.payload)
 
   if (!pull_request) {
     console.log('No pull request found in the context')
