@@ -4,8 +4,8 @@ author: 'Montara'
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: 'heart'
-  color: 'red'
+  icon: 'git-pull-request'
+  color: 'white'
 
 # Define your inputs here.
 inputs:
@@ -15,12 +15,6 @@ inputs:
   isStaging:
     description: 'Whether the test run is for staging or not'
     required: false
-  numRetries:
-    description:
-      'The number of retries to check the pipeline run status. There is a 10
-      second delay between each retry. Default is 10.'
-    required: false
-    default: '10'
 
 # Define your outputs here.
 outputs:
