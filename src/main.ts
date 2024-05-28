@@ -42,7 +42,12 @@ export async function run(): Promise<void> {
         webhookId,
         isStaging
       })
-      if (['completed', 'failed'].includes(status)) {
+      if (status === 'conflict') {
+        core.setOutput('isPassing', false)
+        core.setFailed(
+          `There is an existing pipeline run in progress. Please wait for it to complete before triggering a new run.`
+        )
+      } else if (['completed', 'failed'].includes(status)) {
         await postComment({
           comment: buildRunResultTemplate({
             isPassing: status === 'completed',
