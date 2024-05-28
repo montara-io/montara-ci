@@ -16,9 +16,18 @@ import { formatDuration } from './utils'
 export async function run(): Promise<void> {
   try {
     const startTime = new Date().getTime()
+
     const webhookUrl: string = core.getInput('webhookUrl')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
     const numRetries = Number(core.getInput('numRetries')) || 10
+
+    if (!process.env.MONTARA_GITHUB_TOKEN) {
+      core.setFailed(
+        'MONTARA_GITHUB_TOKEN environment variable is required to run this action'
+      )
+      return
+    }
+
     core.debug(
       `Montara GitHub Action is running with webhookUrl: ${webhookUrl}, isStaging: ${isStaging} and numRetries: ${numRetries}`
     )
