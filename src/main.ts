@@ -48,6 +48,7 @@ export async function run(): Promise<void> {
           break
         } else if (status === 'failed') {
           core.setOutput('isPassing', false)
+          core.setFailed(`Pipeline run failed`)
 
           break
         }

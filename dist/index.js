@@ -32835,6 +32835,7 @@ async function run() {
                 }
                 else if (status === 'failed') {
                     core.setOutput('isPassing', false);
+                    core.setFailed(`Pipeline run failed`);
                     break;
                 }
                 counter = numRetries;
@@ -32910,7 +32911,6 @@ async function getRunStatus({ runId, webhookId, isStaging }) {
             webhookId
         }
     });
-    core.debug(`Got response from status check: ${JSON.stringify(runStatus.data)}`);
     runStatus?.data?.status === 'failed' &&
         core.debug(`Pipeline run failed. Here is the response: ${JSON.stringify(runStatus?.data)}`);
     return {
