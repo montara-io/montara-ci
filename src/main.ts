@@ -19,7 +19,7 @@ export async function run(): Promise<void> {
 
     const webhookUrl: string = core.getInput('webhookUrl')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
-    const numRetries = Number(core.getInput('numRetries')) || 10
+    const numRetries = Number(core.getInput('numRetries')) || 18
 
     if (!process.env.MONTARA_GITHUB_TOKEN) {
       core.setFailed(

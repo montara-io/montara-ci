@@ -15,6 +15,10 @@ inputs:
   isStaging:
     description: 'Whether the test run is for staging or not'
     required: false
+  numRetries: 
+    description: 'The number of retries to attempt'
+    required: false
+    default: "18"
 
 # Define your outputs here.
 outputs:
