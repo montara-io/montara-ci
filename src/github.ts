@@ -1,14 +1,16 @@
 import * as github from '@actions/github'
+import * as core from '@actions/core'
 
 export async function postComment({
   comment
 }: {
   comment: string
 }): Promise<void> {
-  if (!process.env.MONTARA_GITHUB_TOKEN) {
+  const commentToken: string = core.getInput('commentToken')
+  if (!commentToken) {
     return
   }
-  const octokit = github.getOctokit(process.env.MONTARA_GITHUB_TOKEN ?? '')
+  const octokit = github.getOctokit(commentToken)
   const context = github.context
   const { pull_request, repository } = context.payload
 

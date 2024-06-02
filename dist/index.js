@@ -32760,11 +32760,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.postComment = void 0;
 const github = __importStar(__nccwpck_require__(5438));
+const core = __importStar(__nccwpck_require__(2186));
 async function postComment({ comment }) {
-    if (!process.env.MONTARA_GITHUB_TOKEN) {
+    const commentToken = core.getInput('commentToken');
+    if (!commentToken) {
         return;
     }
-    const octokit = github.getOctokit(process.env.MONTARA_GITHUB_TOKEN ?? '');
+    const octokit = github.getOctokit(commentToken);
     const context = github.context;
     const { pull_request, repository } = context.payload;
     if (!pull_request) {

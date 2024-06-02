@@ -2,12 +2,10 @@ name: 'Montara CI'
 description: 'Never merge a broken pipeline again'
 author: 'Montara'
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
   icon: 'git-pull-request'
   color: 'white'
 
-# Define your inputs here.
 inputs:
   webhookUrl:
     description: 'The URL of the webhook'
@@ -19,8 +17,10 @@ inputs:
     description: 'The number of retries to attempt'
     required: false
     default: '18'
+  commentToken:
+    description: 'The token to use for commenting'
+    required: false
 
-# Define your outputs here.
 outputs:
   isPassing:
     description: 'Whether the test run passed or not'
