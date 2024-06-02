@@ -51,7 +51,7 @@ jobs:
       - name: Montara CI
         env:
           MONTARA_GITHUB_TOKEN: ${{ secrets.MONTARA_GITHUB_TOKEN }}
-        uses: montara-io/montara-ci@v0.1.3
+        uses: montara-io/montara-ci@v0.1.4
         with:
           webhookUrl: <your-webhook-url>
 ```
