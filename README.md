@@ -13,7 +13,7 @@ can not be merged.
 
 ## Getting started
 
-- Create a [Montara accout](https://app.montara.io)
+- Create a [Montara account](https://app.montara.io)
 
 - Connect Montara to your data warehouse (see
   [Docs](https://app.montara.io/docs/docs/Settings/#warehouse-connection)).
