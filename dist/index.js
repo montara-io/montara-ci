@@ -32697,7 +32697,15 @@ function wrappy (fn, cb) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PIPELINE_RUN_STATUS = void 0;
+exports.PIPELINE_RUN_STATUS = exports.PIPELINE_RUN_STARTED = void 0;
+const VIEW_FULL_RUN_DETAILS = `[View full run details in Montara](https://{{montaraPrefix}}.montara.io/app/pipelines/{{pipelineId}}?openModalRunId={{runId}})`;
+exports.PIPELINE_RUN_STARTED = `
+# Montara CI
+☑️ Set up a test environment for pipeline run
+☑️ Test run started
+
+${VIEW_FULL_RUN_DETAILS}
+`;
 exports.PIPELINE_RUN_STATUS = `
 # Montara CI report
 ☑️ Set up a test environment for pipeline run
@@ -32715,7 +32723,7 @@ exports.PIPELINE_RUN_STATUS = `
 - ❌  Failed - {{numFailed}}
 - ⏸️  Skipped - {{numSkipped}}
 
-[View full run details in Montara](https://{{montaraPrefix}}.montara.io/app/pipelines/{{pipelineId}}?openModalRunId={{runId}})
+${VIEW_FULL_RUN_DETAILS}
 `;
 
 
@@ -32821,6 +32829,7 @@ async function run() {
         const webhookUrl = core.getInput('webhookUrl');
         const isStaging = core.getInput('isStaging') === 'true';
         const numRetries = Number(core.getInput('numRetries')) || 18;
+        let isPipelineStartedCommentPosted = false;
         if (!process.env.GITHUB_TOKEN) {
             core.setFailed('GITHUB_TOKEN environment variable is required to run this action');
             return;
@@ -32839,8 +32848,19 @@ async function run() {
             if (status === 'conflict') {
                 core.setOutput('isPassing', false);
                 core.setFailed(`There is an existing pipeline run in progress. Please wait for it to complete before triggering a new run.`);
+                return;
             }
-            else if (['completed', 'failed'].includes(status)) {
+            if (!isPipelineStartedCommentPosted) {
+                await (0, github_1.postComment)({
+                    comment: (0, pipeline_run_1.buildRunStartedTemplate)({
+                        isStaging,
+                        runId,
+                        pipelineId
+                    })
+                });
+                isPipelineStartedCommentPosted = true;
+            }
+            if (['completed', 'failed'].includes(status)) {
                 await (0, github_1.postComment)({
                     comment: (0, pipeline_run_1.buildRunResultTemplate)({
                         isPassing: status === 'completed',
@@ -32915,7 +32935,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.buildRunResultTemplate = exports.getRunStatus = exports.triggerPipelineFromWebhookUrl = exports.ModelRunStatus = void 0;
+exports.buildRunResultTemplate = exports.buildRunStartedTemplate = exports.getRunStatus = exports.triggerPipelineFromWebhookUrl = exports.ModelRunStatus = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const axios_1 = __importDefault(__nccwpck_require__(8757));
 const comment_templates_1 = __nccwpck_require__(9013);
@@ -32965,6 +32985,19 @@ async function getRunStatus({ runId, webhookId, isStaging }) {
     };
 }
 exports.getRunStatus = getRunStatus;
+function buildRunStartedTemplate({ isStaging, runId, pipelineId }) {
+    const templateVariableToValue = {
+        runId,
+        pipelineId,
+        montaraPrefix: isStaging ? 'staging' : 'app'
+    };
+    let result = comment_templates_1.PIPELINE_RUN_STARTED;
+    for (const [key, value] of Object.entries(templateVariableToValue)) {
+        result = result.replaceAll(`{{${key}}}`, value);
+    }
+    return result;
+}
+exports.buildRunStartedTemplate = buildRunStartedTemplate;
 function buildRunResultTemplate({ isPassing, isStaging, runId, pipelineId, runDuration, numModels, numPassed, numFailed, numSkipped }) {
     const templateVariableToValue = {
         statusIcon: isPassing ? 'white_check_mark' : 'x',

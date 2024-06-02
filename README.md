@@ -45,8 +45,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Montara CI
-        env:
-          MONTARA_GITHUB_TOKEN: ${{ secrets.MONTARA_GITHUB_TOKEN }}
         uses: montara-io/montara-ci@v0.0.10
         with:
           webhookUrl: <replace-with-copied-webhook-url>
@@ -93,5 +91,6 @@ jobs:
 ## Publishing a New Release
 
 - `sh ./script/release`
-- Find your newly created tag in the [tags](https://github.com/montara-io/montara-ci/tags) section of the repo.
+- Find your newly created tag in the
+  [tags](https://github.com/montara-io/montara-ci/tags) section of the repo.
 - Release the tag.
