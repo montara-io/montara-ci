@@ -43,19 +43,24 @@ name: Montara CI
 on:
   pull_request:
     branches:
-      - 'main'
-      - 'montara_main'
+      - "main"
+      - "montara_main"
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   montara:
     runs-on: ubuntu-latest
     steps:
       - name: Montara CI
-        uses: montara-io/montara-ci@v0.1.4
+        uses: montara-io/montara-ci@v0.1.6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          webhookUrl: <your-webhook-url>
+          webhookUrl: <your-montara-webhook-url>
+
 ```
 
 - You're good to go 🚀. Go ahead and create a new PR.
