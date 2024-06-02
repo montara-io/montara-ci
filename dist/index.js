@@ -32760,29 +32760,34 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.postComment = void 0;
 const github = __importStar(__nccwpck_require__(5438));
-const core = __importStar(__nccwpck_require__(2186));
 async function postComment({ comment }) {
-    const commentToken = core.getInput('commentToken');
-    if (!commentToken) {
-        return;
+    try {
+        const commentToken = process.env.GITHUB_TOKEN ?? '';
+        if (!commentToken) {
+            console.log('No GitHub token found in the context', process.env.GITHUB_TOKEN);
+            return;
+        }
+        const octokit = github.getOctokit(commentToken);
+        const context = github.context;
+        const { pull_request, repository } = context.payload;
+        if (!pull_request) {
+            console.log('No pull request found in the context');
+            return;
+        }
+        const prNumber = pull_request.number;
+        const owner = repository?.owner.login ?? '';
+        const repo = repository?.name ?? '';
+        await octokit.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number: prNumber,
+            body: comment
+        });
+        console.log('Comment posted successfully!');
     }
-    const octokit = github.getOctokit(commentToken);
-    const context = github.context;
-    const { pull_request, repository } = context.payload;
-    if (!pull_request) {
-        console.log('No pull request found in the context');
-        return;
+    catch (error) {
+        console.log('Error posting comment:', error);
     }
-    const prNumber = pull_request.number;
-    const owner = repository?.owner.login ?? '';
-    const repo = repository?.name ?? '';
-    await octokit.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: prNumber,
-        body: comment
-    });
-    console.log('Comment posted successfully!');
 }
 exports.postComment = postComment;
 

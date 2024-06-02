@@ -17,9 +17,6 @@ inputs:
     description: 'The number of retries to attempt'
     required: false
     default: '18'
-  commentToken:
-    description: 'The token to use for commenting'
-    required: false
 
 outputs:
   isPassing:

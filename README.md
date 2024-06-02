@@ -36,7 +36,7 @@ can not be merged.
 
 - [Recommended] Add a required status check in your repo settings to ensure that
   the pipeline runs successfully before merging a PR.
-![Webhook url](./images/require_checks.png)
+  ![Webhook url](./images/require_checks.png)
 
 ```yaml
 name: Montara CI
@@ -53,8 +53,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Montara CI
-        env:
-          MONTARA_GITHUB_TOKEN: ${{ secrets.MONTARA_GITHUB_TOKEN }}
         uses: montara-io/montara-ci@v0.1.4
         with:
           webhookUrl: <your-webhook-url>
