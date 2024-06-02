@@ -5,7 +5,7 @@ export async function postComment({
 }: {
   comment: string
 }): Promise<void> {
-  const octokit = github.getOctokit(process.env.GITHUB_TOKEN ?? '')
+  const octokit = github.getOctokit(process.env.MONTARA_GITHUB_TOKEN ?? '')
   const context = github.context
   const { pull_request, repository } = context.payload
 

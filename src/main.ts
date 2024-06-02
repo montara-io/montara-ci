@@ -23,9 +23,9 @@ export async function run(): Promise<void> {
     const numRetries = Number(core.getInput('numRetries')) || 18
     let isPipelineStartedCommentPosted = false
 
-    if (!process.env.GITHUB_TOKEN) {
+    if (!process.env.MONTARA_GITHUB_TOKEN) {
       core.setFailed(
-        'GITHUB_TOKEN environment variable is required to run this action'
+        'MONTARA_GITHUB_TOKEN environment variable is required to run this action'
       )
       return
     }

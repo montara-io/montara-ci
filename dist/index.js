@@ -32761,7 +32761,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.postComment = void 0;
 const github = __importStar(__nccwpck_require__(5438));
 async function postComment({ comment }) {
-    const octokit = github.getOctokit(process.env.GITHUB_TOKEN ?? '');
+    const octokit = github.getOctokit(process.env.MONTARA_GITHUB_TOKEN ?? '');
     const context = github.context;
     const { pull_request, repository } = context.payload;
     if (!pull_request) {
@@ -32830,8 +32830,8 @@ async function run() {
         const isStaging = core.getInput('isStaging') === 'true';
         const numRetries = Number(core.getInput('numRetries')) || 18;
         let isPipelineStartedCommentPosted = false;
-        if (!process.env.GITHUB_TOKEN) {
-            core.setFailed('GITHUB_TOKEN environment variable is required to run this action');
+        if (!process.env.MONTARA_GITHUB_TOKEN) {
+            core.setFailed('MONTARA_GITHUB_TOKEN environment variable is required to run this action');
             return;
         }
         core.debug(`Montara GitHub Action is running with webhookUrl: ${webhookUrl}, isStaging: ${isStaging} and numRetries: ${numRetries}`);
