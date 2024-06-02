@@ -92,4 +92,6 @@ jobs:
 
 ## Publishing a New Release
 
-`sh ./script/release`
+- `sh ./script/release`
+- Find your newly created tag in the [tags](https://github.com/montara-io/montara-ci/tags) section of the repo.
+- Release the tag.

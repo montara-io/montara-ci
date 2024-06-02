@@ -3,6 +3,7 @@ import { wait } from './wait'
 
 import {
   buildRunResultTemplate,
+  buildRunStartedTemplate,
   getRunStatus,
   triggerPipelineFromWebhookUrl
 } from './pipeline-run'
@@ -20,6 +21,7 @@ export async function run(): Promise<void> {
     const webhookUrl: string = core.getInput('webhookUrl')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
     const numRetries = Number(core.getInput('numRetries')) || 18
+    let isPipelineStartedCommentPosted = false
 
     if (!process.env.GITHUB_TOKEN) {
       core.setFailed(
@@ -33,6 +35,7 @@ export async function run(): Promise<void> {
     )
 
     const { runId, webhookId } = await triggerPipelineFromWebhookUrl(webhookUrl)
+
     let counter = 0
     await wait(2000)
     while (counter < numRetries) {
@@ -56,7 +59,19 @@ export async function run(): Promise<void> {
         core.setFailed(
           `There is an existing pipeline run in progress. Please wait for it to complete before triggering a new run.`
         )
-      } else if (['completed', 'failed'].includes(status)) {
+        return
+      }
+      if (!isPipelineStartedCommentPosted) {
+        await postComment({
+          comment: buildRunStartedTemplate({
+            isStaging,
+            runId,
+            pipelineId
+          })
+        })
+        isPipelineStartedCommentPosted = true
+      }
+      if (['completed', 'failed'].includes(status)) {
         await postComment({
           comment: buildRunResultTemplate({
             isPassing: status === 'completed',

@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import axios from 'axios'
-import { PIPELINE_RUN_STATUS } from './comment-templates'
+import { PIPELINE_RUN_STARTED, PIPELINE_RUN_STATUS } from './comment-templates'
 import { DbtRunErrors } from '@montara-io/error-parsing'
 
 // eslint-disable-next-line no-shadow
@@ -117,6 +117,30 @@ export async function getRunStatus({
     numFailed,
     numSkipped
   }
+}
+
+export function buildRunStartedTemplate({
+  isStaging,
+  runId,
+  pipelineId
+}: {
+  isStaging: boolean
+  runId: string
+  pipelineId: string
+}): string {
+  const templateVariableToValue = {
+    runId,
+    pipelineId,
+    montaraPrefix: isStaging ? 'staging' : 'app'
+  }
+
+  let result = PIPELINE_RUN_STARTED
+
+  for (const [key, value] of Object.entries(templateVariableToValue)) {
+    result = result.replaceAll(`{{${key}}}`, value)
+  }
+
+  return result
 }
 
 export function buildRunResultTemplate({
