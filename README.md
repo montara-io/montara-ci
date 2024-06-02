@@ -34,6 +34,10 @@ can not be merged.
 - Create a `ci.yml` file in your `.github/workflows` directory with the
   following content:
 
+- [Recommended] Add a required status check in your repo settings to ensure that
+  the pipeline runs successfully before merging a PR.
+![Webhook url](./images/require_checks.png)
+
 ```yaml
 name: Montara CI
 on:
