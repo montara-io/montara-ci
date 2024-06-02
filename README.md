@@ -27,8 +27,9 @@ can not be merged.
   [pipeline settings page](https://app.montara.io/app/pipelines) in Montara.
   ![Webhook url](./images/MCI%20webhook.gif)
 
-- [Optional] Create a GitHub secret called `MONTARA_GITHUB_TOKEN` in your repo with the
-  value of your Personal Access Token (PAT). This is required to add comments to the PR.
+- [Optional] Create a GitHub secret called `MONTARA_GITHUB_TOKEN` in your repo
+  with the value of your Personal Access Token (PAT). This is required to add
+  comments to the PR.
 
 - Create a `ci.yml` file in your `.github/workflows` directory with the
   following content:
@@ -38,8 +39,8 @@ name: Montara CI
 on:
   pull_request:
     branches:
-      - "main"
-      - "montara_main"
+      - 'main'
+      - 'montara_main'
 permissions:
   contents: read
 
