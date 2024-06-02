@@ -25,6 +25,7 @@ jobs:
         id: setup-node
         uses: actions/setup-node@v4
         with:
+          registry-url: 'https://npm.pkg.github.com'
           node-version-file: .node-version
           cache: npm
 
