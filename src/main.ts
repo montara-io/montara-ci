@@ -21,9 +21,9 @@ export async function run(): Promise<void> {
     const isStaging: boolean = core.getInput('isStaging') === 'true'
     const numRetries = Number(core.getInput('numRetries')) || 18
 
-    if (!process.env.MONTARA_GITHUB_TOKEN) {
+    if (!process.env.GITHUB_TOKEN) {
       core.setFailed(
-        'MONTARA_GITHUB_TOKEN environment variable is required to run this action'
+        'GITHUB_TOKEN environment variable is required to run this action'
       )
       return
     }
