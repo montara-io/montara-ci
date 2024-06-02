@@ -23,13 +23,6 @@ export async function run(): Promise<void> {
     const numRetries = Number(core.getInput('numRetries')) || 18
     let isPipelineStartedCommentPosted = false
 
-    if (!process.env.MONTARA_GITHUB_TOKEN) {
-      core.setFailed(
-        'MONTARA_GITHUB_TOKEN environment variable is required to run this action'
-      )
-      return
-    }
-
     core.debug(
       `Montara GitHub Action is running with webhookUrl: ${webhookUrl}, isStaging: ${isStaging} and numRetries: ${numRetries}`
     )

@@ -5,6 +5,9 @@ export async function postComment({
 }: {
   comment: string
 }): Promise<void> {
+  if (!process.env.MONTARA_GITHUB_TOKEN) {
+    return
+  }
   const octokit = github.getOctokit(process.env.MONTARA_GITHUB_TOKEN ?? '')
   const context = github.context
   const { pull_request, repository } = context.payload
