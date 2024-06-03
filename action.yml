@@ -16,7 +16,7 @@ inputs:
   numRetries:
     description: 'The number of retries to attempt'
     required: false
-    default: '18'
+    default: '60'
 
 outputs:
   isPassing:

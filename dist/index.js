@@ -32838,7 +32838,7 @@ async function run() {
         const startTime = new Date().getTime();
         const webhookUrl = core.getInput('webhookUrl');
         const isStaging = core.getInput('isStaging') === 'true';
-        const numRetries = Number(core.getInput('numRetries')) || 18;
+        const numRetries = Number(core.getInput('numRetries')) || 60;
         let isPipelineStartedCommentPosted = false;
         core.debug(`Montara GitHub Action is running with webhookUrl: ${webhookUrl}, isStaging: ${isStaging} and numRetries: ${numRetries}`);
         const { runId, webhookId } = await (0, pipeline_run_1.triggerPipelineFromWebhookUrl)(webhookUrl);

@@ -39,8 +39,8 @@ name: Montara CI
 on:
   pull_request:
     branches:
-      - "main"
-      - "montara_main"
+      - 'main'
+      - 'montara_main'
 permissions:
   contents: read
   issues: write
@@ -56,7 +56,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           webhookUrl: <your-montara-webhook-url>
-
 ```
 
 - You're good to go 🚀. Go ahead and create a new PR.
