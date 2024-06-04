@@ -32962,7 +32962,8 @@ async function triggerPipelineFromWebhookUrl(webhookUrl) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
     core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`);
     const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
-        runEnvironment: 'Staging'
+        runEnvironment: 'Staging',
+        isSmartRun: true
     });
     core.debug(`Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`);
     return { runId, webhookId };
