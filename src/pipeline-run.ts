@@ -61,7 +61,8 @@ export async function triggerPipelineFromWebhookUrl(
     runId: string
     webhookId: string
   }>(webhookUrl, {
-    runEnvironment: 'Staging'
+    runEnvironment: 'Staging',
+    isSmartRun: true
   })
   core.debug(
     `Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`
