@@ -9,6 +9,7 @@ import {
 } from './pipeline-run'
 import { postComment } from './github'
 import { formatDuration } from './utils'
+import { trackEvent } from './analytics'
 
 /**
  * The main function for the action.
@@ -16,8 +17,8 @@ import { formatDuration } from './utils'
  */
 export async function run(): Promise<void> {
   try {
+    trackEvent({ eventName: 'montara_ciJobStarted' })
     const startTime = new Date().getTime()
-
     const webhookUrl: string = core.getInput('webhookUrl')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
     const numRetries = Number(core.getInput('numRetries')) || 60
@@ -83,9 +84,21 @@ export async function run(): Promise<void> {
         })
         if (status === 'completed') {
           core.debug(`Pipeline run completed successfully!`)
+          trackEvent({
+            eventName: 'montara_ciJobSuccess',
+            eventProperties: {
+              runId
+            }
+          })
           core.setOutput('isPassing', true)
           break
         } else if (status === 'failed') {
+          trackEvent({
+            eventName: 'montara_ciJobFailed',
+            eventProperties: {
+              runId
+            }
+          })
           core.setOutput('isPassing', false)
           core.setFailed(`Pipeline run failed`)
           break
@@ -98,7 +111,14 @@ export async function run(): Promise<void> {
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) {
-      core.error(`Error occurred: ${JSON.stringify(error)}`)
+      const errorString = JSON.stringify(error)
+      trackEvent({
+        eventName: 'montara_ciJobRuntimeError',
+        eventProperties: {
+          error: errorString
+        }
+      })
+      core.error(`Error occurred: ${errorString}`)
       core.setFailed(error.message)
     }
   }
