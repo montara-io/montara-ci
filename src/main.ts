@@ -95,6 +95,27 @@ export async function run(): Promise<void> {
       await wait(10000)
       counter++
     }
+    const { status, pipelineId, numFailed, numModels, numPassed, numSkipped } =
+      await getRunStatus({
+        runId,
+        webhookId,
+        isStaging
+      })
+    await postComment({
+      comment: buildRunResultTemplate({
+        isPassing: status === 'completed',
+        isStaging,
+        runId,
+        pipelineId,
+        numModels,
+        numPassed,
+        numFailed,
+        numSkipped,
+        runDuration: formatDuration((new Date().getTime() - startTime) / 1000)
+      })
+    })
+    core.setOutput('isPassing', false)
+    core.setFailed(`Pipeline run failed`)
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) {
