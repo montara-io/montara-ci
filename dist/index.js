@@ -44745,6 +44745,14 @@ async function run() {
             await (0, wait_1.wait)(10000);
             counter++;
         }
+        (0, analytics_1.trackEvent)({
+            eventName: 'montara_ciJobFailed',
+            eventProperties: {
+                runId
+            }
+        });
+        core.setOutput('isPassing', false);
+        core.setFailed(`Pipeline run failed`);
     }
     catch (error) {
         // Fail the workflow run if an error occurs

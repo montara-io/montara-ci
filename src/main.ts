@@ -108,6 +108,14 @@ export async function run(): Promise<void> {
       await wait(10000)
       counter++
     }
+    trackEvent({
+      eventName: 'montara_ciJobFailed',
+      eventProperties: {
+        runId
+      }
+    })
+    core.setOutput('isPassing', false)
+    core.setFailed(`Pipeline run failed`)
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) {
