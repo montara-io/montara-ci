@@ -32895,6 +32895,26 @@ async function run() {
             await (0, wait_1.wait)(10000);
             counter++;
         }
+        const { status, pipelineId, numFailed, numModels, numPassed, numSkipped } = await (0, pipeline_run_1.getRunStatus)({
+            runId,
+            webhookId,
+            isStaging
+        });
+        await (0, github_1.postComment)({
+            comment: (0, pipeline_run_1.buildRunResultTemplate)({
+                isPassing: status === 'completed',
+                isStaging,
+                runId,
+                pipelineId,
+                numModels,
+                numPassed,
+                numFailed,
+                numSkipped,
+                runDuration: (0, utils_1.formatDuration)((new Date().getTime() - startTime) / 1000)
+            })
+        });
+        core.setOutput('isPassing', false);
+        core.setFailed(`Pipeline run failed`);
     }
     catch (error) {
         // Fail the workflow run if an error occurs
