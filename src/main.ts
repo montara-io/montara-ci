@@ -58,7 +58,6 @@ export async function run(): Promise<void> {
         isStaging
       })
       if (status === 'conflict') {
-        core.setOutput('isPassing', false)
         core.setFailed(
           `There is an existing pipeline run in progress. Please wait for it to complete before triggering a new run.`
         )
@@ -98,8 +97,8 @@ export async function run(): Promise<void> {
               runId
             }
           })
-          core.setOutput('isPassing', true)
-          break
+
+          return
         } else if (status === 'failed') {
           trackEvent({
             eventName: 'montara_ciJobFailed',
@@ -107,9 +106,9 @@ export async function run(): Promise<void> {
               runId
             }
           })
-          core.setOutput('isPassing', false)
+
           core.setFailed(`Pipeline run failed`)
-          break
+          return
         }
         counter = numRetries
       }
@@ -122,7 +121,7 @@ export async function run(): Promise<void> {
         runId
       }
     })
-    core.setOutput('isPassing', false)
+
     core.setFailed(`Pipeline run failed`)
   } catch (error) {
     // Fail the workflow run if an error occurs
