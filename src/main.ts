@@ -7,7 +7,7 @@ import {
   getRunStatus,
   triggerPipelineFromWebhookUrl
 } from './pipeline-run'
-import { postComment } from './github'
+import { getPullRequestBranch, postComment } from './github'
 import { formatDuration } from './utils'
 import { trackEvent } from './analytics'
 
@@ -28,8 +28,16 @@ export async function run(): Promise<void> {
     core.debug(
       `Montara GitHub Action is running with webhookUrl: ${webhookUrl}, isStaging: ${isStaging} and numRetries: ${numRetries}`
     )
+    const branch = getPullRequestBranch()
+    if (!branch) {
+      core.setFailed('No pull request found in the context')
+      return
+    }
 
-    const { runId, webhookId } = await triggerPipelineFromWebhookUrl(webhookUrl)
+    const { runId, webhookId } = await triggerPipelineFromWebhookUrl({
+      webhookUrl,
+      branch
+    })
 
     let counter = 0
     await wait(2000)
