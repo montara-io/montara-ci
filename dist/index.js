@@ -44594,7 +44594,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.postComment = void 0;
+exports.getPullRequestBranch = exports.postComment = void 0;
 const github = __importStar(__nccwpck_require__(5438));
 async function postComment({ comment }) {
     try {
@@ -44626,6 +44626,16 @@ async function postComment({ comment }) {
     }
 }
 exports.postComment = postComment;
+function getPullRequestBranch() {
+    const context = github.context;
+    const { pull_request } = context.payload;
+    if (!pull_request?.head?.ref) {
+        console.log('No pull request found in the context');
+        return '';
+    }
+    return pull_request.head.ref;
+}
+exports.getPullRequestBranch = getPullRequestBranch;
 
 
 /***/ }),
@@ -44679,7 +44689,15 @@ async function run() {
         const numRetries = Number(core.getInput('numRetries')) || 60;
         let isPipelineStartedCommentPosted = false;
         core.debug(`Montara GitHub Action is running with webhookUrl: ${webhookUrl}, isStaging: ${isStaging} and numRetries: ${numRetries}`);
-        const { runId, webhookId } = await (0, pipeline_run_1.triggerPipelineFromWebhookUrl)(webhookUrl);
+        const branch = (0, github_1.getPullRequestBranch)();
+        if (!branch) {
+            core.setFailed('No pull request found in the context');
+            return;
+        }
+        const { runId, webhookId } = await (0, pipeline_run_1.triggerPipelineFromWebhookUrl)({
+            webhookUrl,
+            branch
+        });
         let counter = 0;
         await (0, wait_1.wait)(2000);
         while (counter < numRetries) {
@@ -44823,10 +44841,11 @@ var RunEnvironment;
     RunEnvironment["Staging"] = "Staging";
     RunEnvironment["Production"] = "Production";
 })(RunEnvironment || (RunEnvironment = {}));
-async function triggerPipelineFromWebhookUrl(webhookUrl) {
+async function triggerPipelineFromWebhookUrl({ webhookUrl, branch }) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
     core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`);
     const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
+        branch,
         runEnvironment: 'Staging',
         isSmartRun: true
     });

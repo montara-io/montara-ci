@@ -40,3 +40,15 @@ export async function postComment({
     console.log('Error posting comment:', error)
   }
 }
+
+export function getPullRequestBranch(): string {
+  const context = github.context
+  const { pull_request } = context.payload
+
+  if (!pull_request?.head?.ref) {
+    console.log('No pull request found in the context')
+    return ''
+  }
+
+  return pull_request.head.ref
+}

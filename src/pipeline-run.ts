@@ -46,9 +46,13 @@ type PipelineRunStatus =
   | 'completed'
   | 'conflict'
 
-export async function triggerPipelineFromWebhookUrl(
+export async function triggerPipelineFromWebhookUrl({
+  webhookUrl,
+  branch
+}: {
   webhookUrl: string
-): Promise<{
+  branch: string
+}): Promise<{
   runId: string
   webhookId: string
 }> {
@@ -61,6 +65,7 @@ export async function triggerPipelineFromWebhookUrl(
     runId: string
     webhookId: string
   }>(webhookUrl, {
+    branch,
     runEnvironment: 'Staging',
     isSmartRun: true
   })
