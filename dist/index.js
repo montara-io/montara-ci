@@ -44708,7 +44708,6 @@ async function run() {
                 isStaging
             });
             if (status === 'conflict') {
-                core.setOutput('isPassing', false);
                 core.setFailed(`There is an existing pipeline run in progress. Please wait for it to complete before triggering a new run.`);
                 return;
             }
@@ -44744,8 +44743,7 @@ async function run() {
                             runId
                         }
                     });
-                    core.setOutput('isPassing', true);
-                    break;
+                    return;
                 }
                 else if (status === 'failed') {
                     (0, analytics_1.trackEvent)({
@@ -44754,9 +44752,8 @@ async function run() {
                             runId
                         }
                     });
-                    core.setOutput('isPassing', false);
                     core.setFailed(`Pipeline run failed`);
-                    break;
+                    return;
                 }
                 counter = numRetries;
             }
@@ -44769,7 +44766,6 @@ async function run() {
                 runId
             }
         });
-        core.setOutput('isPassing', false);
         core.setFailed(`Pipeline run failed`);
     }
     catch (error) {

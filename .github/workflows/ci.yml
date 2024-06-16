@@ -62,7 +62,3 @@ jobs:
         with:
           webhookUrl: https://staging-hooks.montara.io/pipeline/v2/trigger/36a07953-feac-4de5-a2e8-fbcbe2373e57
           isStaging: true
-
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.isPassing }}"

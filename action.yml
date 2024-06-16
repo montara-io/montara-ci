@@ -17,11 +17,6 @@ inputs:
     description: 'The number of retries to attempt'
     required: false
     default: '60'
-
-outputs:
-  isPassing:
-    description: 'Whether the test run passed or not'
-
 runs:
   using: node20
   main: dist/index.js
