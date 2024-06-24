@@ -19,7 +19,7 @@ can not be merged.
   [Docs](https://app.montara.io/docs/docs/Settings/#warehouse-connection)).
 
 - Connect Montara to your git repo in the
-  [Montara settings page](https://app.montara.io/app/settings?selectedSettingsTab=2)
+  [Montara settings page](https://app.montara.io/app/settings?selectedSettingsTab=1)
   (see
   [Docs](https://app.montara.io/docs/docs/Settings/Integrations/dbt/GitHubRepo/)).
 
