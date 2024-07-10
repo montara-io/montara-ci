@@ -44696,7 +44696,8 @@ async function run() {
         }
         const { runId, webhookId } = await (0, pipeline_run_1.triggerPipelineFromWebhookUrl)({
             webhookUrl,
-            branch
+            branch,
+            isStaging
         });
         let counter = 0;
         await (0, wait_1.wait)(2000);
@@ -44837,12 +44838,14 @@ var RunEnvironment;
     RunEnvironment["Staging"] = "Staging";
     RunEnvironment["Production"] = "Production";
 })(RunEnvironment || (RunEnvironment = {}));
-async function triggerPipelineFromWebhookUrl({ webhookUrl, branch }) {
+async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, isStaging }) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
     core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`);
     const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
         branch,
-        runEnvironment: 'Staging',
+        runEnvironment: isStaging
+            ? RunEnvironment.Staging
+            : RunEnvironment.Production,
         isSmartRun: true
     });
     core.debug(`Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`);
