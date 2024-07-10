@@ -48,10 +48,12 @@ type PipelineRunStatus =
 
 export async function triggerPipelineFromWebhookUrl({
   webhookUrl,
-  branch
+  branch,
+  isStaging
 }: {
   webhookUrl: string
   branch: string
+  isStaging: boolean
 }): Promise<{
   runId: string
   webhookId: string
@@ -66,7 +68,9 @@ export async function triggerPipelineFromWebhookUrl({
     webhookId: string
   }>(webhookUrl, {
     branch,
-    runEnvironment: 'Staging',
+    runEnvironment: isStaging
+      ? RunEnvironment.Staging
+      : RunEnvironment.Production,
     isSmartRun: true
   })
   core.debug(

@@ -36,7 +36,8 @@ export async function run(): Promise<void> {
 
     const { runId, webhookId } = await triggerPipelineFromWebhookUrl({
       webhookUrl,
-      branch
+      branch,
+      isStaging
     })
 
     let counter = 0
