@@ -7,7 +7,11 @@ import {
   getRunStatus,
   triggerPipelineFromWebhookUrl
 } from './pipeline-run'
-import { getPullRequestBranch, postComment } from './github'
+import {
+  getPullRequestBranch,
+  getPullRequestCommit,
+  postComment
+} from './github'
 import { formatDuration } from './utils'
 import { trackEvent } from './analytics'
 
@@ -33,10 +37,16 @@ export async function run(): Promise<void> {
       core.setFailed('No pull request found in the context')
       return
     }
+    const commit = getPullRequestCommit()
+    if (!commit) {
+      core.setFailed('No commit found in the context')
+      return
+    }
 
     const { runId, webhookId } = await triggerPipelineFromWebhookUrl({
       webhookUrl,
       branch,
+      commit,
       isStaging
     })
 
