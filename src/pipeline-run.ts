@@ -49,17 +49,21 @@ type PipelineRunStatus =
 export async function triggerPipelineFromWebhookUrl({
   webhookUrl,
   branch,
+  commit,
   isStaging
 }: {
   webhookUrl: string
   branch: string
+  commit: string
   isStaging: boolean
 }): Promise<{
   runId: string
   webhookId: string
 }> {
   // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-  core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`)
+  core.debug(
+    `Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}`
+  )
 
   const {
     data: { runId, webhookId }
@@ -68,6 +72,7 @@ export async function triggerPipelineFromWebhookUrl({
     webhookId: string
   }>(webhookUrl, {
     branch,
+    commit,
     runEnvironment: isStaging
       ? RunEnvironment.Staging
       : RunEnvironment.Production,

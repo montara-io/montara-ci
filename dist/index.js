@@ -44594,7 +44594,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPullRequestBranch = exports.postComment = void 0;
+exports.getPullRequestCommit = exports.getPullRequestBranch = exports.postComment = void 0;
 const github = __importStar(__nccwpck_require__(5438));
 async function postComment({ comment }) {
     try {
@@ -44636,6 +44636,16 @@ function getPullRequestBranch() {
     return pull_request.head.ref;
 }
 exports.getPullRequestBranch = getPullRequestBranch;
+function getPullRequestCommit() {
+    const context = github.context;
+    const { pull_request } = context.payload;
+    if (!pull_request?.head?.sha) {
+        console.log('No pull request found in the context');
+        return '';
+    }
+    return pull_request.head.sha;
+}
+exports.getPullRequestCommit = getPullRequestCommit;
 
 
 /***/ }),
@@ -44694,9 +44704,15 @@ async function run() {
             core.setFailed('No pull request found in the context');
             return;
         }
+        const commit = (0, github_1.getPullRequestCommit)();
+        if (!commit) {
+            core.setFailed('No commit found in the context');
+            return;
+        }
         const { runId, webhookId } = await (0, pipeline_run_1.triggerPipelineFromWebhookUrl)({
             webhookUrl,
             branch,
+            commit,
             isStaging
         });
         let counter = 0;
@@ -44838,11 +44854,12 @@ var RunEnvironment;
     RunEnvironment["Staging"] = "Staging";
     RunEnvironment["Production"] = "Production";
 })(RunEnvironment || (RunEnvironment = {}));
-async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, isStaging }) {
+async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, isStaging }) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}`);
+    core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}`);
     const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
         branch,
+        commit,
         runEnvironment: isStaging
             ? RunEnvironment.Staging
             : RunEnvironment.Production,
