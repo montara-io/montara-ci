@@ -70,7 +70,7 @@
     "@actions/github": "^6.0.0",
     "@montara-io/error-parsing": "^0.0.28",
     "@segment/analytics-node": "^2.1.2",
-    "axios": "^1.7.2"
+    "axios": "^1.7.7"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
