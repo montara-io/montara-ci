@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
+import { DbtRunErrors } from '@montara-io/error-parsing'
 import axios from 'axios'
 import { PIPELINE_RUN_STARTED, PIPELINE_RUN_STATUS } from './comment-templates'
-import { DbtRunErrors } from '@montara-io/error-parsing'
 
 // eslint-disable-next-line no-shadow
 export enum ModelRunStatus {
@@ -50,19 +50,21 @@ export async function triggerPipelineFromWebhookUrl({
   webhookUrl,
   branch,
   commit,
-  isStaging
+  isStaging,
+  fallbackSchema
 }: {
   webhookUrl: string
   branch: string
   commit: string
   isStaging: boolean
+  fallbackSchema: string
 }): Promise<{
   runId: string
   webhookId: string
 }> {
   // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
   core.debug(
-    `Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}`
+    `Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}`
   )
 
   const {
@@ -76,6 +78,7 @@ export async function triggerPipelineFromWebhookUrl({
     runEnvironment: isStaging
       ? RunEnvironment.Staging
       : RunEnvironment.Production,
+    fallbackSchema,
     isSmartRun: true
   })
   core.debug(

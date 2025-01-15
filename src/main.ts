@@ -24,6 +24,7 @@ export async function run(): Promise<void> {
     trackEvent({ eventName: 'montara_ciJobStarted' })
     const startTime = new Date().getTime()
     const webhookUrl: string = core.getInput('webhookUrl')
+    const fallbackSchema: string = core.getInput('fallbackSchema')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
     const numRetries = Number(core.getInput('numRetries')) || 60
 
@@ -47,7 +48,8 @@ export async function run(): Promise<void> {
       webhookUrl,
       branch,
       commit,
-      isStaging
+      isStaging,
+      fallbackSchema
     })
 
     let counter = 0
