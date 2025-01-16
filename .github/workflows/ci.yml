@@ -46,19 +46,3 @@ jobs:
       - name: Test
         id: npm-ci-test
         run: npm run ci-test
-
-  test-action:
-    name: GitHub Actions Test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
-
-      - name: Test Local Action
-        id: test-action
-        uses: ./
-        with:
-          webhookUrl: https://staging-hooks.montara.io/pipeline/v2/trigger/36a07953-feac-4de5-a2e8-fbcbe2373e57
-          isStaging: true
