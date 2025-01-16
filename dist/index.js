@@ -44695,6 +44695,7 @@ async function run() {
         (0, analytics_1.trackEvent)({ eventName: 'montara_ciJobStarted' });
         const startTime = new Date().getTime();
         const webhookUrl = core.getInput('webhookUrl');
+        const fallbackSchema = core.getInput('fallbackSchema');
         const isStaging = core.getInput('isStaging') === 'true';
         const numRetries = Number(core.getInput('numRetries')) || 60;
         let isPipelineStartedCommentPosted = false;
@@ -44713,7 +44714,8 @@ async function run() {
             webhookUrl,
             branch,
             commit,
-            isStaging
+            isStaging,
+            fallbackSchema
         });
         let counter = 0;
         await (0, wait_1.wait)(2000);
@@ -44854,15 +44856,16 @@ var RunEnvironment;
     RunEnvironment["Staging"] = "Staging";
     RunEnvironment["Production"] = "Production";
 })(RunEnvironment || (RunEnvironment = {}));
-async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, isStaging }) {
+async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, isStaging, fallbackSchema }) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}`);
+    core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}`);
     const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
         branch,
         commit,
         runEnvironment: isStaging
             ? RunEnvironment.Staging
             : RunEnvironment.Production,
+        fallbackSchema,
         isSmartRun: true
     });
     core.debug(`Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`);
