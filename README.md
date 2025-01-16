@@ -34,13 +34,16 @@ can not be merged.
   the pipeline runs successfully before merging a PR.
   ![Webhook url](./images/require_checks.png)
 
+- [Recommended] The test run will run on a dedicated user schema according to
+  the user who created the PR. You can also specify a fallback schema to run the
+  test run on if the PR is created outside of Montara.
+
 ```yaml
 name: Montara CI
 on:
   pull_request:
-    branches:
+    branches-ignore:
       - 'main'
-      - 'montara_main'
 permissions:
   contents: read
   issues: write
@@ -51,11 +54,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Montara CI
-        uses: montara-io/montara-ci@v0.1.6
+        uses: montara-io/montara-ci@v0.1.16
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           webhookUrl: <your-montara-webhook-url>
+          fallbackSchema: <[optional]your-fallback-schema>
 ```
 
 - You're good to go 🚀. Go ahead and create a new PR.
