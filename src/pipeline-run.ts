@@ -12,7 +12,8 @@ export enum ModelRunStatus {
 // eslint-disable-next-line no-shadow
 enum RunEnvironment {
   Staging = 'Staging',
-  Production = 'Production'
+  Production = 'Production',
+  CI = 'CI'
 }
 
 type GetPipelineRunStatus = {
@@ -50,13 +51,11 @@ export async function triggerPipelineFromWebhookUrl({
   webhookUrl,
   branch,
   commit,
-  isStaging,
   fallbackSchema
 }: {
   webhookUrl: string
   branch: string
   commit: string
-  isStaging: boolean
   fallbackSchema: string
 }): Promise<{
   runId: string
@@ -75,9 +74,7 @@ export async function triggerPipelineFromWebhookUrl({
   }>(webhookUrl, {
     branch,
     commit,
-    runEnvironment: isStaging
-      ? RunEnvironment.Staging
-      : RunEnvironment.Production,
+    runEnvironment: RunEnvironment.CI,
     fallbackSchema,
     isSmartRun: true
   })

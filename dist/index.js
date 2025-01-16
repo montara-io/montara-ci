@@ -44732,7 +44732,6 @@ async function run() {
             webhookUrl,
             branch,
             commit,
-            isStaging,
             fallbackSchema
         });
         let counter = 0;
@@ -44886,16 +44885,15 @@ var RunEnvironment;
 (function (RunEnvironment) {
     RunEnvironment["Staging"] = "Staging";
     RunEnvironment["Production"] = "Production";
+    RunEnvironment["CI"] = "CI";
 })(RunEnvironment || (RunEnvironment = {}));
-async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, isStaging, fallbackSchema }) {
+async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, fallbackSchema }) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
     core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}`);
     const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
         branch,
         commit,
-        runEnvironment: isStaging
-            ? RunEnvironment.Staging
-            : RunEnvironment.Production,
+        runEnvironment: RunEnvironment.CI,
         fallbackSchema,
         isSmartRun: true
     });
