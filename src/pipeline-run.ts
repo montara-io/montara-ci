@@ -53,12 +53,14 @@ export async function triggerPipelineFromWebhookUrl({
   webhookUrl,
   branch,
   commit,
-  fallbackSchema
+  fallbackSchema,
+  isSmartRun
 }: {
   webhookUrl: string
   branch: string
   commit: string
   fallbackSchema: string
+  isSmartRun: boolean
 }): Promise<{
   runId: string
   webhookId: string
@@ -78,7 +80,7 @@ export async function triggerPipelineFromWebhookUrl({
     commit,
     runEnvironment: RunEnvironment.CI,
     fallbackSchema,
-    isSmartRun: true
+    isSmartRun
   })
   core.debug(
     `Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`
