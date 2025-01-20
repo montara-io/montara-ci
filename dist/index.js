@@ -8963,7 +8963,7 @@ function state(list, sortMethod)
 
 /***/ }),
 
-/***/ 3351:
+/***/ 5732:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 var abort = __nccwpck_require__(4818)
@@ -9004,7 +9004,7 @@ function terminator(callback)
 
 var iterate    = __nccwpck_require__(4902)
   , initState  = __nccwpck_require__(1721)
-  , terminator = __nccwpck_require__(3351)
+  , terminator = __nccwpck_require__(5732)
   ;
 
 // Public API
@@ -9078,7 +9078,7 @@ function serial(list, iterator, callback)
 
 var iterate    = __nccwpck_require__(4902)
   , initState  = __nccwpck_require__(1721)
-  , terminator = __nccwpck_require__(3351)
+  , terminator = __nccwpck_require__(5732)
   ;
 
 // Public API
@@ -13858,7 +13858,7 @@ exports["default"] = (alg) => (0, random_js_1.default)(new Uint8Array(bitLength(
 
 /***/ }),
 
-/***/ 5732:
+/***/ 3351:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -14990,7 +14990,7 @@ exports["default"] = (algorithm) => {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const node_crypto_1 = __nccwpck_require__(7598);
-const check_iv_length_js_1 = __nccwpck_require__(5732);
+const check_iv_length_js_1 = __nccwpck_require__(3351);
 const check_cek_length_js_1 = __nccwpck_require__(7000);
 const buffer_utils_js_1 = __nccwpck_require__(5734);
 const errors_js_1 = __nccwpck_require__(5974);
@@ -15225,7 +15225,7 @@ exports.ecdhAllowed = ecdhAllowed;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const node_crypto_1 = __nccwpck_require__(7598);
-const check_iv_length_js_1 = __nccwpck_require__(5732);
+const check_iv_length_js_1 = __nccwpck_require__(3351);
 const check_cek_length_js_1 = __nccwpck_require__(7000);
 const buffer_utils_js_1 = __nccwpck_require__(5734);
 const cbc_tag_js_1 = __nccwpck_require__(6910);
@@ -44700,10 +44700,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = run;
 const core = __importStar(__nccwpck_require__(7484));
 const wait_1 = __nccwpck_require__(910);
-const pipeline_run_1 = __nccwpck_require__(1493);
-const github_1 = __nccwpck_require__(9248);
-const utils_1 = __nccwpck_require__(1798);
 const analytics_1 = __nccwpck_require__(1267);
+const github_1 = __nccwpck_require__(9248);
+const pipeline_run_1 = __nccwpck_require__(1493);
+const utils_1 = __nccwpck_require__(1798);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -44715,6 +44715,10 @@ async function run() {
         const webhookUrl = core.getInput('webhookUrl');
         const fallbackSchema = core.getInput('fallbackSchema');
         const isStaging = core.getInput('isStaging') === 'true';
+        const isSmartRunParam = core.getInput('isSmartRun');
+        const isSmartRun = isSmartRunParam
+            ? isSmartRunParam === 'true'
+            : true;
         const numRetries = Number(core.getInput('numRetries')) || 60;
         let isPipelineStartedCommentPosted = false;
         core.info(`Montara GitHub Action is running with webhookUrl: ${webhookUrl}, fallbackSchema: ${fallbackSchema} and numRetries: ${numRetries}`);
@@ -44733,7 +44737,8 @@ async function run() {
             webhookUrl,
             branch,
             commit,
-            fallbackSchema
+            fallbackSchema,
+            isSmartRun
         });
         core.info(`Pipeline run triggered with runId: ${runId}`);
         let counter = 0;
@@ -44764,7 +44769,7 @@ async function run() {
                 core.info(`Pipeline run completed with status: ${status}`);
                 await (0, github_1.postComment)({
                     comment: (0, pipeline_run_1.buildRunResultTemplate)({
-                        isPassing: status !== 'failed',
+                        isPassing: status === 'completed',
                         isStaging,
                         runId,
                         pipelineId,
@@ -44775,7 +44780,7 @@ async function run() {
                         runDuration: (0, utils_1.formatDuration)((new Date().getTime() - startTime) / 1000)
                     })
                 });
-                if (status === 'completed' || status === 'cancelled') {
+                if (status === 'completed') {
                     core.debug(`Pipeline run completed with status: ${status}!`);
                     (0, analytics_1.trackEvent)({
                         eventName: 'montara_ciJobSuccess',
@@ -44785,7 +44790,7 @@ async function run() {
                     });
                     return;
                 }
-                else if (status === 'failed') {
+                else if (status === 'failed' || status === 'cancelled') {
                     (0, analytics_1.trackEvent)({
                         eventName: 'montara_ciJobFailed',
                         eventProperties: {
@@ -44891,7 +44896,7 @@ var RunEnvironment;
     RunEnvironment["Production"] = "Production";
     RunEnvironment["CI"] = "CI";
 })(RunEnvironment || (RunEnvironment = {}));
-async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, fallbackSchema }) {
+async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, fallbackSchema, isSmartRun }) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
     core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}`);
     const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
@@ -44899,7 +44904,7 @@ async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, fallb
         commit,
         runEnvironment: RunEnvironment.CI,
         fallbackSchema,
-        isSmartRun: true
+        isSmartRun
     });
     core.debug(`Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`);
     return { runId, webhookId };
