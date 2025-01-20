@@ -30,8 +30,8 @@ export async function run(): Promise<void> {
 
     let isPipelineStartedCommentPosted = false
 
-    core.debug(
-      `Montara GitHub Action is running with webhookUrl: ${webhookUrl}, isStaging: ${isStaging} and numRetries: ${numRetries}`
+    core.info(
+      `Montara GitHub Action is running with webhookUrl: ${webhookUrl}, fallbackSchema: ${fallbackSchema} and numRetries: ${numRetries}`
     )
     const branch = getPullRequestBranch()
     if (!branch) {
@@ -44,6 +44,10 @@ export async function run(): Promise<void> {
       return
     }
 
+    core.info(
+      `Trigger pipeline webhookUrl: ${webhookUrl}, for branch: ${branch} and commit: ${commit}`
+    )
+
     const { runId, webhookId } = await triggerPipelineFromWebhookUrl({
       webhookUrl,
       branch,
@@ -51,11 +55,13 @@ export async function run(): Promise<void> {
       fallbackSchema
     })
 
+    core.info(`Pipeline run triggered with runId: ${runId}`)
+
     let counter = 0
     await wait(2000)
     while (counter < numRetries) {
-      core.debug(
-        `Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}/${numRetries}`
+      core.info(
+        `Checking status of pipeline run with runId: ${runId} (Attempt: ${counter}/${numRetries})`
       )
       const {
         status,
@@ -76,6 +82,7 @@ export async function run(): Promise<void> {
         return
       }
       if (!isPipelineStartedCommentPosted) {
+        core.info(`Pipeline run started`)
         await postComment({
           comment: buildRunStartedTemplate({
             isStaging,
@@ -86,6 +93,7 @@ export async function run(): Promise<void> {
         isPipelineStartedCommentPosted = true
       }
       if (['completed', 'failed'].includes(status)) {
+        core.info(`Pipeline run completed with status: ${status}`)
         await postComment({
           comment: buildRunResultTemplate({
             isPassing: status === 'completed',
