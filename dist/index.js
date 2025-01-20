@@ -44760,11 +44760,11 @@ async function run() {
                 });
                 isPipelineStartedCommentPosted = true;
             }
-            if (['completed', 'failed'].includes(status)) {
+            if (['completed', 'failed', 'cancelled'].includes(status)) {
                 core.info(`Pipeline run completed with status: ${status}`);
                 await (0, github_1.postComment)({
                     comment: (0, pipeline_run_1.buildRunResultTemplate)({
-                        isPassing: status === 'completed',
+                        isPassing: status !== 'failed',
                         isStaging,
                         runId,
                         pipelineId,
@@ -44775,8 +44775,8 @@ async function run() {
                         runDuration: (0, utils_1.formatDuration)((new Date().getTime() - startTime) / 1000)
                     })
                 });
-                if (status === 'completed') {
-                    core.debug(`Pipeline run completed successfully!`);
+                if (status === 'completed' || status === 'cancelled') {
+                    core.debug(`Pipeline run completed with status: ${status}!`);
                     (0, analytics_1.trackEvent)({
                         eventName: 'montara_ciJobSuccess',
                         eventProperties: {
