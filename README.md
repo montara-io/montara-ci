@@ -38,9 +38,8 @@ can not be merged.
   the user who created the PR. You can also specify a fallback schema to run the
   test run on if the PR is created outside of Montara.
 
-- [Optional] The test run by default will run a smart run. This means that the
-  test run will only run on the changed models and tests. You can disable this
-  by setting the `isSmartRun` parameter to `false`.
+- [Optional] The test run by default will run a Montara smart run. You can
+  disable this by setting the `isSmartRun` parameter to `false`.
 
 ```yaml
 name: Montara CI
