@@ -38,6 +38,9 @@ can not be merged.
   the user who created the PR. You can also specify a fallback schema to run the
   test run on if the PR is created outside of Montara.
 
+- [Optional] The test run by default will run a Montara smart run. You can
+  disable this by setting the `isSmartRun` parameter to `false`.
+
 ```yaml
 name: Montara CI
 on:
@@ -54,12 +57,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Montara CI
-        uses: montara-io/montara-ci@v1.0.3
+        uses: montara-io/montara-ci@v1.0.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           webhookUrl: <your-montara-webhook-url>
           fallbackSchema: <[optional]your-fallback-schema>
+          isSmartRun: <[optional]true|false>
 ```
 
 - You're good to go 🚀. Go ahead and create a new PR.

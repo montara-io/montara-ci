@@ -1,19 +1,19 @@
 import * as core from '@actions/core'
 import { wait } from './wait'
 
+import { trackEvent } from './analytics'
+import {
+  getPullRequestBranch,
+  getPullRequestCommit,
+  postComment
+} from './github'
 import {
   buildRunResultTemplate,
   buildRunStartedTemplate,
   getRunStatus,
   triggerPipelineFromWebhookUrl
 } from './pipeline-run'
-import {
-  getPullRequestBranch,
-  getPullRequestCommit,
-  postComment
-} from './github'
 import { formatDuration } from './utils'
-import { trackEvent } from './analytics'
 
 /**
  * The main function for the action.
@@ -26,6 +26,10 @@ export async function run(): Promise<void> {
     const webhookUrl: string = core.getInput('webhookUrl')
     const fallbackSchema: string = core.getInput('fallbackSchema')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
+    const isSmartRunParam: string = core.getInput('isSmartRun')
+    const isSmartRun: boolean = isSmartRunParam
+      ? isSmartRunParam === 'true'
+      : true
     const numRetries = Number(core.getInput('numRetries')) || 60
 
     let isPipelineStartedCommentPosted = false
@@ -52,7 +56,8 @@ export async function run(): Promise<void> {
       webhookUrl,
       branch,
       commit,
-      fallbackSchema
+      fallbackSchema,
+      isSmartRun
     })
 
     core.info(`Pipeline run triggered with runId: ${runId}`)
@@ -96,7 +101,7 @@ export async function run(): Promise<void> {
         core.info(`Pipeline run completed with status: ${status}`)
         await postComment({
           comment: buildRunResultTemplate({
-            isPassing: status !== 'failed',
+            isPassing: status === 'completed',
             isStaging,
             runId,
             pipelineId,
@@ -109,7 +114,7 @@ export async function run(): Promise<void> {
             )
           })
         })
-        if (status === 'completed' || status === 'cancelled') {
+        if (status === 'completed') {
           core.debug(`Pipeline run completed with status: ${status}!`)
           trackEvent({
             eventName: 'montara_ciJobSuccess',
@@ -119,7 +124,7 @@ export async function run(): Promise<void> {
           })
 
           return
-        } else if (status === 'failed') {
+        } else if (status === 'failed' || status === 'cancelled') {
           trackEvent({
             eventName: 'montara_ciJobFailed',
             eventProperties: {
