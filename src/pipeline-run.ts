@@ -46,6 +46,8 @@ type PipelineRunStatus =
   | 'failed'
   | 'completed'
   | 'conflict'
+  | 'cancelling'
+  | 'cancelled'
 
 export async function triggerPipelineFromWebhookUrl({
   webhookUrl,

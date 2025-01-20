@@ -92,11 +92,11 @@ export async function run(): Promise<void> {
         })
         isPipelineStartedCommentPosted = true
       }
-      if (['completed', 'failed'].includes(status)) {
+      if (['completed', 'failed', 'cancelled'].includes(status)) {
         core.info(`Pipeline run completed with status: ${status}`)
         await postComment({
           comment: buildRunResultTemplate({
-            isPassing: status === 'completed',
+            isPassing: status !== 'failed',
             isStaging,
             runId,
             pipelineId,
@@ -109,8 +109,8 @@ export async function run(): Promise<void> {
             )
           })
         })
-        if (status === 'completed') {
-          core.debug(`Pipeline run completed successfully!`)
+        if (status === 'completed' || status === 'cancelled') {
+          core.debug(`Pipeline run completed with status: ${status}!`)
           trackEvent({
             eventName: 'montara_ciJobSuccess',
             eventProperties: {

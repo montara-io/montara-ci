@@ -44717,7 +44717,7 @@ async function run() {
         const isStaging = core.getInput('isStaging') === 'true';
         const numRetries = Number(core.getInput('numRetries')) || 60;
         let isPipelineStartedCommentPosted = false;
-        core.debug(`Montara GitHub Action is running with webhookUrl: ${webhookUrl}, isStaging: ${isStaging} and numRetries: ${numRetries}`);
+        core.info(`Montara GitHub Action is running with webhookUrl: ${webhookUrl}, fallbackSchema: ${fallbackSchema} and numRetries: ${numRetries}`);
         const branch = (0, github_1.getPullRequestBranch)();
         if (!branch) {
             core.setFailed('No pull request found in the context');
@@ -44728,16 +44728,18 @@ async function run() {
             core.setFailed('No commit found in the context');
             return;
         }
+        core.info(`Trigger pipeline webhookUrl: ${webhookUrl}, for branch: ${branch} and commit: ${commit}`);
         const { runId, webhookId } = await (0, pipeline_run_1.triggerPipelineFromWebhookUrl)({
             webhookUrl,
             branch,
             commit,
             fallbackSchema
         });
+        core.info(`Pipeline run triggered with runId: ${runId}`);
         let counter = 0;
         await (0, wait_1.wait)(2000);
         while (counter < numRetries) {
-            core.debug(`Checking status of pipeline run with runId: ${runId} and webhookId: ${webhookId}. Attempt: ${counter}/${numRetries}`);
+            core.info(`Checking status of pipeline run with runId: ${runId} (Attempt: ${counter}/${numRetries})`);
             const { status, pipelineId, numFailed, numModels, numPassed, numSkipped } = await (0, pipeline_run_1.getRunStatus)({
                 runId,
                 webhookId,
@@ -44748,6 +44750,7 @@ async function run() {
                 return;
             }
             if (!isPipelineStartedCommentPosted) {
+                core.info(`Pipeline run started`);
                 await (0, github_1.postComment)({
                     comment: (0, pipeline_run_1.buildRunStartedTemplate)({
                         isStaging,
@@ -44757,10 +44760,11 @@ async function run() {
                 });
                 isPipelineStartedCommentPosted = true;
             }
-            if (['completed', 'failed'].includes(status)) {
+            if (['completed', 'failed', 'cancelled'].includes(status)) {
+                core.info(`Pipeline run completed with status: ${status}`);
                 await (0, github_1.postComment)({
                     comment: (0, pipeline_run_1.buildRunResultTemplate)({
-                        isPassing: status === 'completed',
+                        isPassing: status !== 'failed',
                         isStaging,
                         runId,
                         pipelineId,
@@ -44771,8 +44775,8 @@ async function run() {
                         runDuration: (0, utils_1.formatDuration)((new Date().getTime() - startTime) / 1000)
                     })
                 });
-                if (status === 'completed') {
-                    core.debug(`Pipeline run completed successfully!`);
+                if (status === 'completed' || status === 'cancelled') {
+                    core.debug(`Pipeline run completed with status: ${status}!`);
                     (0, analytics_1.trackEvent)({
                         eventName: 'montara_ciJobSuccess',
                         eventProperties: {
