@@ -44630,7 +44630,7 @@ async function postComment({ comment }) {
             issue_number: prNumber,
             body: comment
         });
-        console.log('Comment posted successfully!');
+        console.debug('Comment posted successfully!');
     }
     catch (error) {
         console.log('Error posting comment:', error);
