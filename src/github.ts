@@ -35,7 +35,7 @@ export async function postComment({
       body: comment
     })
 
-    console.log('Comment posted successfully!')
+    console.debug('Comment posted successfully!')
   } catch (error) {
     console.log('Error posting comment:', error)
   }
