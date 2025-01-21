@@ -30,6 +30,13 @@ export async function run(): Promise<void> {
     const isSmartRun: boolean = isSmartRunParam
       ? isSmartRunParam === 'true'
       : true
+    const allowConcurrentPipelineRunsParam: string = core.getInput(
+      'allowConcurrentPipelineRuns'
+    )
+    const allowConcurrentPipelineRuns: boolean =
+      allowConcurrentPipelineRunsParam
+        ? allowConcurrentPipelineRunsParam === 'true'
+        : true
     const numRetries = Number(core.getInput('numRetries')) || 60
 
     let isPipelineStartedCommentPosted = false
@@ -57,7 +64,8 @@ export async function run(): Promise<void> {
       branch,
       commit,
       fallbackSchema,
-      isSmartRun
+      isSmartRun,
+      allowConcurrentPipelineRuns
     })
 
     core.info(`Pipeline run triggered with runId: ${runId}`)
