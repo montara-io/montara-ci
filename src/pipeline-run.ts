@@ -54,20 +54,22 @@ export async function triggerPipelineFromWebhookUrl({
   branch,
   commit,
   fallbackSchema,
-  isSmartRun
+  isSmartRun,
+  allowConcurrentPipelineRuns
 }: {
   webhookUrl: string
   branch: string
   commit: string
   fallbackSchema: string
   isSmartRun: boolean
+  allowConcurrentPipelineRuns: boolean
 }): Promise<{
   runId: string
   webhookId: string
 }> {
   // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
   core.debug(
-    `Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}`
+    `Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}, isSmartRun: ${isSmartRun}, allowConcurrentPipelineRuns: ${allowConcurrentPipelineRuns}`
   )
 
   const {
@@ -80,7 +82,8 @@ export async function triggerPipelineFromWebhookUrl({
     commit,
     runEnvironment: RunEnvironment.CI,
     fallbackSchema,
-    isSmartRun
+    isSmartRun,
+    allowConcurrentPipelineRuns
   })
   core.debug(
     `Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`
@@ -104,6 +107,7 @@ export async function getRunStatus({
   numPassed: number
   numFailed: number
   numSkipped: number
+  errors: any
 }> {
   const url = `https://${isStaging ? 'staging-' : ''}hooks.montara.io/pipeline/run/status`
 
@@ -134,7 +138,8 @@ export async function getRunStatus({
     numModels,
     numPassed,
     numFailed,
-    numSkipped
+    numSkipped,
+    errors: runStatus.data.errors
   }
 }
 

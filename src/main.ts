@@ -30,6 +30,13 @@ export async function run(): Promise<void> {
     const isSmartRun: boolean = isSmartRunParam
       ? isSmartRunParam === 'true'
       : true
+    const allowConcurrentPipelineRunsParam: string = core.getInput(
+      'allowConcurrentPipelineRuns'
+    )
+    const allowConcurrentPipelineRuns: boolean =
+      allowConcurrentPipelineRunsParam
+        ? allowConcurrentPipelineRunsParam === 'true'
+        : true
     const numRetries = Number(core.getInput('numRetries')) || 60
 
     let isPipelineStartedCommentPosted = false
@@ -57,7 +64,8 @@ export async function run(): Promise<void> {
       branch,
       commit,
       fallbackSchema,
-      isSmartRun
+      isSmartRun,
+      allowConcurrentPipelineRuns
     })
 
     core.info(`Pipeline run triggered with runId: ${runId}`)
@@ -74,7 +82,8 @@ export async function run(): Promise<void> {
         numFailed,
         numModels,
         numPassed,
-        numSkipped
+        numSkipped,
+        errors
       } = await getRunStatus({
         runId,
         webhookId,
@@ -101,7 +110,7 @@ export async function run(): Promise<void> {
         core.info(`Pipeline run completed with status: ${status}`)
         await postComment({
           comment: buildRunResultTemplate({
-            isPassing: status === 'completed',
+            isPassing: status !== 'failed',
             isStaging,
             runId,
             pipelineId,
@@ -114,8 +123,8 @@ export async function run(): Promise<void> {
             )
           })
         })
+        core.debug(`Pipeline run completed with status: ${status}!`)
         if (status === 'completed') {
-          core.debug(`Pipeline run completed with status: ${status}!`)
           trackEvent({
             eventName: 'montara_ciJobSuccess',
             eventProperties: {
@@ -124,7 +133,17 @@ export async function run(): Promise<void> {
           })
 
           return
-        } else if (status === 'failed' || status === 'cancelled') {
+        } else if (status === 'cancelled') {
+          core.warning(`Pipeline run cancelled with reason: ${errors}!`)
+          trackEvent({
+            eventName: 'montara_ciJobSuccess',
+            eventProperties: {
+              runId
+            }
+          })
+
+          return
+        } else if (status === 'failed') {
           trackEvent({
             eventName: 'montara_ciJobFailed',
             eventProperties: {

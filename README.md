@@ -41,6 +41,10 @@ can not be merged.
 - [Optional] The test run by default will run a Montara smart run. You can
   disable this by setting the `isSmartRun` parameter to `false`.
 
+- [Optional] The test run by default will run in parallel to any pipelines that
+  might run at the same time. You can disable this by setting the
+  `allowConcurrentPipelineRuns` parameter to `false`.
+
 ```yaml
 name: Montara CI
 on:
@@ -57,13 +61,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Montara CI
-        uses: montara-io/montara-ci@v1.0.4
+        uses: montara-io/montara-ci@v1.0.6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           webhookUrl: <your-montara-webhook-url>
           fallbackSchema: <[optional]your-fallback-schema>
-          isSmartRun: <[optional]true|false>
+```
+
+[optional]
+
+```yaml
+isSmartRun: <[optional]true|false>
+allowConcurrentPipelineRuns: <[optional]true|false>
 ```
 
 - You're good to go 🚀. Go ahead and create a new PR.

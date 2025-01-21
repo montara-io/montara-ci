@@ -44719,6 +44719,10 @@ async function run() {
         const isSmartRun = isSmartRunParam
             ? isSmartRunParam === 'true'
             : true;
+        const allowConcurrentPipelineRunsParam = core.getInput('allowConcurrentPipelineRuns');
+        const allowConcurrentPipelineRuns = allowConcurrentPipelineRunsParam
+            ? allowConcurrentPipelineRunsParam === 'true'
+            : true;
         const numRetries = Number(core.getInput('numRetries')) || 60;
         let isPipelineStartedCommentPosted = false;
         core.info(`Montara GitHub Action is running with webhookUrl: ${webhookUrl}, fallbackSchema: ${fallbackSchema} and numRetries: ${numRetries}`);
@@ -44738,14 +44742,15 @@ async function run() {
             branch,
             commit,
             fallbackSchema,
-            isSmartRun
+            isSmartRun,
+            allowConcurrentPipelineRuns
         });
         core.info(`Pipeline run triggered with runId: ${runId}`);
         let counter = 0;
         await (0, wait_1.wait)(2000);
         while (counter < numRetries) {
             core.info(`Checking status of pipeline run with runId: ${runId} (Attempt: ${counter}/${numRetries})`);
-            const { status, pipelineId, numFailed, numModels, numPassed, numSkipped } = await (0, pipeline_run_1.getRunStatus)({
+            const { status, pipelineId, numFailed, numModels, numPassed, numSkipped, errors } = await (0, pipeline_run_1.getRunStatus)({
                 runId,
                 webhookId,
                 isStaging
@@ -44769,7 +44774,7 @@ async function run() {
                 core.info(`Pipeline run completed with status: ${status}`);
                 await (0, github_1.postComment)({
                     comment: (0, pipeline_run_1.buildRunResultTemplate)({
-                        isPassing: status === 'completed',
+                        isPassing: status !== 'failed',
                         isStaging,
                         runId,
                         pipelineId,
@@ -44780,8 +44785,8 @@ async function run() {
                         runDuration: (0, utils_1.formatDuration)((new Date().getTime() - startTime) / 1000)
                     })
                 });
+                core.debug(`Pipeline run completed with status: ${status}!`);
                 if (status === 'completed') {
-                    core.debug(`Pipeline run completed with status: ${status}!`);
                     (0, analytics_1.trackEvent)({
                         eventName: 'montara_ciJobSuccess',
                         eventProperties: {
@@ -44790,7 +44795,17 @@ async function run() {
                     });
                     return;
                 }
-                else if (status === 'failed' || status === 'cancelled') {
+                else if (status === 'cancelled') {
+                    core.warning(`Pipeline run cancelled with reason: ${errors}!`);
+                    (0, analytics_1.trackEvent)({
+                        eventName: 'montara_ciJobSuccess',
+                        eventProperties: {
+                            runId
+                        }
+                    });
+                    return;
+                }
+                else if (status === 'failed') {
                     (0, analytics_1.trackEvent)({
                         eventName: 'montara_ciJobFailed',
                         eventProperties: {
@@ -44896,15 +44911,16 @@ var RunEnvironment;
     RunEnvironment["Production"] = "Production";
     RunEnvironment["CI"] = "CI";
 })(RunEnvironment || (RunEnvironment = {}));
-async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, fallbackSchema, isSmartRun }) {
+async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, fallbackSchema, isSmartRun, allowConcurrentPipelineRuns }) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}`);
+    core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}, isSmartRun: ${isSmartRun}, allowConcurrentPipelineRuns: ${allowConcurrentPipelineRuns}`);
     const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
         branch,
         commit,
         runEnvironment: RunEnvironment.CI,
         fallbackSchema,
-        isSmartRun
+        isSmartRun,
+        allowConcurrentPipelineRuns
     });
     core.debug(`Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`);
     return { runId, webhookId };
@@ -44928,7 +44944,8 @@ async function getRunStatus({ runId, webhookId, isStaging }) {
         numModels,
         numPassed,
         numFailed,
-        numSkipped
+        numSkipped,
+        errors: runStatus.data.errors
     };
 }
 function buildRunStartedTemplate({ isStaging, runId, pipelineId }) {
