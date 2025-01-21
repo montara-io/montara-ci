@@ -183,7 +183,8 @@ export function buildRunResultTemplate({
   numModels,
   numPassed,
   numFailed,
-  numSkipped
+  numSkipped,
+  errors
 }: {
   status: PipelineRunStatus
   isStaging: boolean
@@ -194,8 +195,12 @@ export function buildRunResultTemplate({
   numPassed: number
   numFailed: number
   numSkipped: number
+  errors: PipelineErrors
 }): string {
   let statusText: string
+  const errorString = errors?.generalErrors?.length
+    ? `- ${errors.generalErrors[0]?.message}`
+    : undefined
   switch (status) {
     case 'completed':
       statusText = 'completed successfully'
@@ -204,7 +209,7 @@ export function buildRunResultTemplate({
       statusText = 'failed'
       break
     case 'cancelled':
-      statusText = 'cancelled'
+      statusText = `canceled${errorString ? errorString : ''}`
       break
     default:
       statusText = 'unknown'

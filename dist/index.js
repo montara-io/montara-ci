@@ -44546,7 +44546,7 @@ exports.PIPELINE_RUN_STATUS = `
 ☑️ Set up a test environment for pipeline run
 ☑️ Test run executed
 
-:{{statusIcon}}: test run {{status}}
+:{{statusIcon}}: Test run {{status}}
 
 ## Run details
 
@@ -44782,6 +44782,7 @@ async function run() {
                         numPassed,
                         numFailed,
                         numSkipped,
+                        errors,
                         runDuration: (0, utils_1.formatDuration)((new Date().getTime() - startTime) / 1000)
                     })
                 });
@@ -44797,16 +44798,18 @@ async function run() {
                 }
                 else if (status === 'cancelled') {
                     core.debug(`errors: ${JSON.stringify(errors)}!`);
-                    const errorString = errors?.generalErrors?.[0]?.message ?? JSON.stringify(errors);
+                    const errorString = errors?.generalErrors?.length
+                        ? errors.generalErrors[0]?.message
+                        : JSON.stringify(errors);
                     core.debug(`errorString: ${errorString}`);
-                    core.warning(`Pipeline run cancelled with reason: ${errorString}`);
+                    core.warning(`Pipeline run canceled with reason: ${errorString}`);
                     (0, analytics_1.trackEvent)({
-                        eventName: 'montara_ciJobCancelled',
+                        eventName: 'montara_ciJobCanceled',
                         eventProperties: {
                             runId
                         }
                     });
-                    core.setFailed(`Pipeline run cancelled`);
+                    core.setFailed(`Pipeline run canceled`);
                     return;
                 }
                 else if (status === 'failed') {
@@ -44964,8 +44967,11 @@ function buildRunStartedTemplate({ isStaging, runId, pipelineId }) {
     }
     return result;
 }
-function buildRunResultTemplate({ status, isStaging, runId, pipelineId, runDuration, numModels, numPassed, numFailed, numSkipped }) {
+function buildRunResultTemplate({ status, isStaging, runId, pipelineId, runDuration, numModels, numPassed, numFailed, numSkipped, errors }) {
     let statusText;
+    const errorString = errors?.generalErrors?.length
+        ? `- ${errors.generalErrors[0]?.message}`
+        : undefined;
     switch (status) {
         case 'completed':
             statusText = 'completed successfully';
@@ -44974,7 +44980,7 @@ function buildRunResultTemplate({ status, isStaging, runId, pipelineId, runDurat
             statusText = 'failed';
             break;
         case 'cancelled':
-            statusText = 'cancelled';
+            statusText = `canceled${errorString ? errorString : ''}`;
             break;
         default:
             statusText = 'unknown';

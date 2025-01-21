@@ -5,6 +5,9 @@ describe('pipeline run', () => {
     expect(
       buildRunResultTemplate({
         status: 'failed',
+        errors: {
+          generalErrors: [{ type: 'test error', message: 'test error' }]
+        },
         isStaging: false,
         numFailed: 1,
         numModels: 3,

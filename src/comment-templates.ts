@@ -13,7 +13,7 @@ export const PIPELINE_RUN_STATUS = `
 ☑️ Set up a test environment for pipeline run
 ☑️ Test run executed
 
-:{{statusIcon}}: test run {{status}}
+:{{statusIcon}}: Test run {{status}}
 
 ## Run details
 

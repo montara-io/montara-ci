@@ -118,6 +118,7 @@ export async function run(): Promise<void> {
             numPassed,
             numFailed,
             numSkipped,
+            errors,
             runDuration: formatDuration(
               (new Date().getTime() - startTime) / 1000
             )
@@ -135,18 +136,19 @@ export async function run(): Promise<void> {
           return
         } else if (status === 'cancelled') {
           core.debug(`errors: ${JSON.stringify(errors)}!`)
-          const errorString =
-            errors?.generalErrors?.[0]?.message ?? JSON.stringify(errors)
+          const errorString = errors?.generalErrors?.length
+            ? errors.generalErrors[0]?.message
+            : JSON.stringify(errors)
 
           core.debug(`errorString: ${errorString}`)
-          core.warning(`Pipeline run cancelled with reason: ${errorString}`)
+          core.warning(`Pipeline run canceled with reason: ${errorString}`)
           trackEvent({
-            eventName: 'montara_ciJobCancelled',
+            eventName: 'montara_ciJobCanceled',
             eventProperties: {
               runId
             }
           })
-          core.setFailed(`Pipeline run cancelled`)
+          core.setFailed(`Pipeline run canceled`)
           return
         } else if (status === 'failed') {
           trackEvent({
