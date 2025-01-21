@@ -107,6 +107,7 @@ export async function getRunStatus({
   numPassed: number
   numFailed: number
   numSkipped: number
+  errors: any
 }> {
   const url = `https://${isStaging ? 'staging-' : ''}hooks.montara.io/pipeline/run/status`
 
@@ -137,7 +138,8 @@ export async function getRunStatus({
     numModels,
     numPassed,
     numFailed,
-    numSkipped
+    numSkipped,
+    errors: runStatus.data.errors
   }
 }
 
