@@ -110,7 +110,7 @@ export async function run(): Promise<void> {
         core.info(`Pipeline run completed with status: ${status}`)
         await postComment({
           comment: buildRunResultTemplate({
-            isPassing: status !== 'failed',
+            status,
             isStaging,
             runId,
             pipelineId,
@@ -136,12 +136,12 @@ export async function run(): Promise<void> {
         } else if (status === 'cancelled') {
           core.warning(`Pipeline run cancelled with reason: ${errors}!`)
           trackEvent({
-            eventName: 'montara_ciJobSuccess',
+            eventName: 'montara_ciJobCancelled',
             eventProperties: {
               runId
             }
           })
-
+          core.setFailed(`Pipeline run cancelled`)
           return
         } else if (status === 'failed') {
           trackEvent({

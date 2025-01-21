@@ -5,6 +5,7 @@ type AnalyticsEvent =
   | 'montara_ciJobStarted'
   | 'montara_ciJobSuccess'
   | 'montara_ciJobFailed'
+  | 'montara_ciJobCancelled'
   | 'montara_ciJobRuntimeError'
 
 const analytics = new Analytics({

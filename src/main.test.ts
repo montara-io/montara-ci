@@ -4,7 +4,7 @@ describe('pipeline run', () => {
   it('should propery format the github comment', () => {
     expect(
       buildRunResultTemplate({
-        isPassing: false,
+        status: 'failed',
         isStaging: false,
         numFailed: 1,
         numModels: 3,

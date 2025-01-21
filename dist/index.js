@@ -44774,7 +44774,7 @@ async function run() {
                 core.info(`Pipeline run completed with status: ${status}`);
                 await (0, github_1.postComment)({
                     comment: (0, pipeline_run_1.buildRunResultTemplate)({
-                        isPassing: status !== 'failed',
+                        status,
                         isStaging,
                         runId,
                         pipelineId,
@@ -44798,11 +44798,12 @@ async function run() {
                 else if (status === 'cancelled') {
                     core.warning(`Pipeline run cancelled with reason: ${errors}!`);
                     (0, analytics_1.trackEvent)({
-                        eventName: 'montara_ciJobSuccess',
+                        eventName: 'montara_ciJobCancelled',
                         eventProperties: {
                             runId
                         }
                     });
+                    core.setFailed(`Pipeline run cancelled`);
                     return;
                 }
                 else if (status === 'failed') {
@@ -44960,10 +44961,29 @@ function buildRunStartedTemplate({ isStaging, runId, pipelineId }) {
     }
     return result;
 }
-function buildRunResultTemplate({ isPassing, isStaging, runId, pipelineId, runDuration, numModels, numPassed, numFailed, numSkipped }) {
+function buildRunResultTemplate({ status, isStaging, runId, pipelineId, runDuration, numModels, numPassed, numFailed, numSkipped }) {
+    let statusText;
+    switch (status) {
+        case 'completed':
+            statusText = 'completed successfully';
+            break;
+        case 'failed':
+            statusText = 'failed';
+            break;
+        case 'cancelled':
+            statusText = 'cancelled';
+            break;
+        default:
+            statusText = 'unknown';
+            break;
+    }
     const templateVariableToValue = {
-        statusIcon: isPassing ? 'white_check_mark' : 'x',
-        status: isPassing ? 'completed successfully' : 'failed',
+        statusIcon: status === 'completed'
+            ? 'white_check_mark'
+            : status === 'cancelled'
+                ? 'warning'
+                : 'x', //for failed
+        status: statusText,
         runId,
         pipelineId,
         montaraPrefix: isStaging ? 'staging' : 'app',

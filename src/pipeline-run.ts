@@ -107,7 +107,7 @@ export async function getRunStatus({
   numPassed: number
   numFailed: number
   numSkipped: number
-  errors: any
+  errors: unknown
 }> {
   const url = `https://${isStaging ? 'staging-' : ''}hooks.montara.io/pipeline/run/status`
 
@@ -168,7 +168,7 @@ export function buildRunStartedTemplate({
 }
 
 export function buildRunResultTemplate({
-  isPassing,
+  status,
   isStaging,
   runId,
   pipelineId,
@@ -178,7 +178,7 @@ export function buildRunResultTemplate({
   numFailed,
   numSkipped
 }: {
-  isPassing: boolean
+  status: PipelineRunStatus
   isStaging: boolean
   runId: string
   pipelineId: string
@@ -188,9 +188,30 @@ export function buildRunResultTemplate({
   numFailed: number
   numSkipped: number
 }): string {
+  let statusText: string
+  switch (status) {
+    case 'completed':
+      statusText = 'completed successfully'
+      break
+    case 'failed':
+      statusText = 'failed'
+      break
+    case 'cancelled':
+      statusText = 'cancelled'
+      break
+    default:
+      statusText = 'unknown'
+      break
+  }
+
   const templateVariableToValue = {
-    statusIcon: isPassing ? 'white_check_mark' : 'x',
-    status: isPassing ? 'completed successfully' : 'failed',
+    statusIcon:
+      status === 'completed'
+        ? 'white_check_mark'
+        : status === 'cancelled'
+          ? 'warning'
+          : 'x', //for failed
+    status: statusText,
     runId,
     pipelineId,
     montaraPrefix: isStaging ? 'staging' : 'app',
