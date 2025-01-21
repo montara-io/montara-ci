@@ -134,7 +134,12 @@ export async function run(): Promise<void> {
 
           return
         } else if (status === 'cancelled') {
-          core.warning(`Pipeline run cancelled with reason: ${errors}!`)
+          core.debug(`errors: ${JSON.stringify(errors)}!`)
+          const errorString =
+            errors?.generalErrors?.[0]?.message ?? JSON.stringify(errors)
+
+          core.debug(`errorString: ${errorString}`)
+          core.warning(`Pipeline run cancelled with reason: ${errorString}`)
           trackEvent({
             eventName: 'montara_ciJobCancelled',
             eventProperties: {

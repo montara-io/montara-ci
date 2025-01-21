@@ -44630,7 +44630,7 @@ async function postComment({ comment }) {
             issue_number: prNumber,
             body: comment
         });
-        console.log('Comment posted successfully!');
+        console.debug('Comment posted successfully!');
     }
     catch (error) {
         console.log('Error posting comment:', error);
@@ -44796,7 +44796,10 @@ async function run() {
                     return;
                 }
                 else if (status === 'cancelled') {
-                    core.warning(`Pipeline run cancelled with reason: ${errors}!`);
+                    core.debug(`errors: ${JSON.stringify(errors)}!`);
+                    const errorString = errors?.generalErrors?.[0]?.message ?? JSON.stringify(errors);
+                    core.debug(`errorString: ${errorString}`);
+                    core.warning(`Pipeline run cancelled with reason: ${errorString}`);
                     (0, analytics_1.trackEvent)({
                         eventName: 'montara_ciJobCancelled',
                         eventProperties: {

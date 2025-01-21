@@ -16,6 +16,13 @@ enum RunEnvironment {
   CI = 'CI'
 }
 
+type PipelineErrors = {
+  generalErrors: {
+    type: string
+    message: string
+  }[]
+}
+
 type GetPipelineRunStatus = {
   id: string
   status: PipelineRunStatus
@@ -107,7 +114,7 @@ export async function getRunStatus({
   numPassed: number
   numFailed: number
   numSkipped: number
-  errors: unknown
+  errors: PipelineErrors
 }> {
   const url = `https://${isStaging ? 'staging-' : ''}hooks.montara.io/pipeline/run/status`
 
