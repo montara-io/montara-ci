@@ -25,7 +25,7 @@ can not be merged.
 
 - Montara CI triggers a test run via a webhook. Copy the webhook URL from the
   [pipeline settings page](https://app.montara.io/app/pipelines) in Montara.
-  ![Webhook url](./images/MCI%20webhook.gif)
+  ![Webhook url](./images/webhook.gif)
 
 - Create a `ci.yml` file in your `.github/workflows` directory with the
   following content:
@@ -34,9 +34,8 @@ can not be merged.
   the pipeline runs successfully before merging a PR.
   ![Webhook url](./images/require_checks.png)
 
-- [Recommended] The test run will run on a dedicated user schema according to
-  the user who created the PR. You can also specify a fallback schema to run the
-  test run on if the PR is created outside of Montara.
+- [Recommended] The test run will run on an isolated schema according to
+  the user who created the PR. You can also specify a fallback schema to override this behavior if the PR is created outside of Montara.
 
 - [Optional] The test run by default will run a Montara smart run. You can
   disable this by setting the `isSmartRun` parameter to `false`.
