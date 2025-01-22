@@ -44532,7 +44532,7 @@ function trackEvent({ eventName, eventProperties = {} }) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PIPELINE_RUN_STATUS = exports.PIPELINE_RUN_STARTED = void 0;
+exports.PIPELINE_RUN_STATUS = exports.PIPELINE_RUN_PENDING = exports.PIPELINE_RUN_STARTED = void 0;
 const VIEW_FULL_RUN_DETAILS = `[View full run details in Montara](https://{{montaraPrefix}}.montara.io/app/pipelines/{{pipelineId}}?openModalRunId={{runId}})`;
 exports.PIPELINE_RUN_STARTED = `
 # Montara CI
@@ -44540,6 +44540,11 @@ exports.PIPELINE_RUN_STARTED = `
 ☑️ Test run started
 
 ${VIEW_FULL_RUN_DETAILS}
+`;
+exports.PIPELINE_RUN_PENDING = `
+# Montara CI
+☑️ Set up a test environment for pipeline run
+☑️ Test run waiting to start
 `;
 exports.PIPELINE_RUN_STATUS = `
 # Montara CI report
@@ -44725,6 +44730,7 @@ async function run() {
             : true;
         const numRetries = Number(core.getInput('numRetries')) || 60;
         let isPipelineStartedCommentPosted = false;
+        let isPipelinePendingCommentPosted = false;
         core.info(`Montara GitHub Action is running with webhookUrl: ${webhookUrl}, fallbackSchema: ${fallbackSchema} and numRetries: ${numRetries}`);
         const branch = (0, github_1.getPullRequestBranch)();
         if (!branch) {
@@ -44759,7 +44765,7 @@ async function run() {
                 core.setFailed(`There is an existing pipeline run in progress. Please wait for it to complete before triggering a new run.`);
                 return;
             }
-            if (!isPipelineStartedCommentPosted) {
+            if (status === 'in_progress' && !isPipelineStartedCommentPosted) {
                 core.info(`Pipeline run started`);
                 await (0, github_1.postComment)({
                     comment: (0, pipeline_run_1.buildRunStartedTemplate)({
@@ -44769,6 +44775,13 @@ async function run() {
                     })
                 });
                 isPipelineStartedCommentPosted = true;
+            }
+            if (status === 'pending' && !isPipelinePendingCommentPosted) {
+                core.info(`Pipeline run pending`);
+                await (0, github_1.postComment)({
+                    comment: (0, pipeline_run_1.buildRunPendingTemplate)()
+                });
+                isPipelinePendingCommentPosted = true;
             }
             if (['completed', 'failed', 'cancelled'].includes(status)) {
                 core.info(`Pipeline run completed with status: ${status}`);
@@ -44900,6 +44913,7 @@ exports.ModelRunStatus = void 0;
 exports.triggerPipelineFromWebhookUrl = triggerPipelineFromWebhookUrl;
 exports.getRunStatus = getRunStatus;
 exports.buildRunStartedTemplate = buildRunStartedTemplate;
+exports.buildRunPendingTemplate = buildRunPendingTemplate;
 exports.buildRunResultTemplate = buildRunResultTemplate;
 const core = __importStar(__nccwpck_require__(7484));
 const axios_1 = __importDefault(__nccwpck_require__(7269));
@@ -44966,6 +44980,9 @@ function buildRunStartedTemplate({ isStaging, runId, pipelineId }) {
         result = result.replaceAll(`{{${key}}}`, value);
     }
     return result;
+}
+function buildRunPendingTemplate() {
+    return comment_templates_1.PIPELINE_RUN_PENDING;
 }
 function buildRunResultTemplate({ status, isStaging, runId, pipelineId, runDuration, numModels, numPassed, numFailed, numSkipped, errors }) {
     let statusText;

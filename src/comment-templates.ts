@@ -8,6 +8,12 @@ export const PIPELINE_RUN_STARTED = `
 ${VIEW_FULL_RUN_DETAILS}
 `
 
+export const PIPELINE_RUN_PENDING = `
+# Montara CI
+☑️ Set up a test environment for pipeline run
+☑️ Test run waiting to start
+`
+
 export const PIPELINE_RUN_STATUS = `
 # Montara CI report
 ☑️ Set up a test environment for pipeline run

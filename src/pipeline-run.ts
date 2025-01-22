@@ -1,7 +1,11 @@
 import * as core from '@actions/core'
 import { DbtRunErrors } from '@montara-io/error-parsing'
 import axios from 'axios'
-import { PIPELINE_RUN_STARTED, PIPELINE_RUN_STATUS } from './comment-templates'
+import {
+  PIPELINE_RUN_PENDING,
+  PIPELINE_RUN_STARTED,
+  PIPELINE_RUN_STATUS
+} from './comment-templates'
 
 // eslint-disable-next-line no-shadow
 export enum ModelRunStatus {
@@ -172,6 +176,10 @@ export function buildRunStartedTemplate({
   }
 
   return result
+}
+
+export function buildRunPendingTemplate(): string {
+  return PIPELINE_RUN_PENDING
 }
 
 export function buildRunResultTemplate({
