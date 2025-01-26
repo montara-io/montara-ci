@@ -34,8 +34,9 @@ can not be merged.
   the pipeline runs successfully before merging a PR.
   ![Webhook url](./images/require_checks.png)
 
-- [Recommended] The test run will run on an isolated schema according to
-  the user who created the PR. You can also specify a fallback schema to override this behavior if the PR is created outside of Montara.
+- [Recommended] The test run will run on an isolated schema according to the
+  user who created the PR. You can also specify a fallback schema to override
+  this behavior if the PR is created outside of Montara.
 
 - [Optional] The test run by default will run a Montara smart run. You can
   disable this by setting the `isSmartRun` parameter to `false`.
@@ -59,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Montara CI
-        uses: montara-io/montara-ci@v1.0.12
+        uses: montara-io/montara-ci@v1.0.14
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

@@ -152,12 +152,11 @@ export async function run(): Promise<void> {
           core.debug(`errorString: ${errorString}`)
           core.warning(`Pipeline run canceled with reason: ${errorString}`)
           trackEvent({
-            eventName: 'montara_ciJobCanceled',
+            eventName: 'montara_ciJobSuccess',
             eventProperties: {
               runId
             }
           })
-          core.setFailed(`Pipeline run canceled`)
           return
         } else if (status === 'failed') {
           trackEvent({

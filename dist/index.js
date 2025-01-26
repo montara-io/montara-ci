@@ -44532,14 +44532,13 @@ function trackEvent({ eventName, eventProperties = {} }) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PIPELINE_RUN_STATUS = exports.PIPELINE_RUN_PENDING = exports.PIPELINE_RUN_STARTED = void 0;
-const VIEW_FULL_RUN_DETAILS = `[View full run details in Montara](https://{{montaraPrefix}}.montara.io/app/pipelines/{{pipelineId}}?openModalRunId={{runId}})`;
+exports.PIPELINE_RUN_STATUS = exports.PIPELINE_RUN_PENDING = exports.PIPELINE_RUN_STARTED = exports.VIEW_FULL_RUN_DETAILS = void 0;
+exports.VIEW_FULL_RUN_DETAILS = `[View full run details in Montara](https://{{montaraPrefix}}.montara.io/app/pipelines/{{pipelineId}}?openModalRunId={{runId}})`;
 exports.PIPELINE_RUN_STARTED = `
 # Montara CI
-☑️ Set up a test environment for pipeline run
 ☑️ Test run started
 
-${VIEW_FULL_RUN_DETAILS}
+${exports.VIEW_FULL_RUN_DETAILS}
 `;
 exports.PIPELINE_RUN_PENDING = `
 # Montara CI
@@ -44548,7 +44547,6 @@ exports.PIPELINE_RUN_PENDING = `
 `;
 exports.PIPELINE_RUN_STATUS = `
 # Montara CI report
-☑️ Set up a test environment for pipeline run
 ☑️ Test run executed
 
 :{{statusIcon}}: Test run {{status}}
@@ -44562,8 +44560,6 @@ exports.PIPELINE_RUN_STATUS = `
 - ✅  Passed - {{numPassed}}
 - ❌  Failed - {{numFailed}}
 - ⏸️  Skipped - {{numSkipped}}
-
-${VIEW_FULL_RUN_DETAILS}
 `;
 
 
@@ -44817,12 +44813,11 @@ async function run() {
                     core.debug(`errorString: ${errorString}`);
                     core.warning(`Pipeline run canceled with reason: ${errorString}`);
                     (0, analytics_1.trackEvent)({
-                        eventName: 'montara_ciJobCanceled',
+                        eventName: 'montara_ciJobSuccess',
                         eventProperties: {
                             runId
                         }
                     });
-                    core.setFailed(`Pipeline run canceled`);
                     return;
                 }
                 else if (status === 'failed') {
@@ -45020,6 +45015,9 @@ function buildRunResultTemplate({ status, isStaging, runId, pipelineId, runDurat
         numSkipped: numSkipped.toString()
     };
     let result = comment_templates_1.PIPELINE_RUN_STATUS;
+    if (status === 'completed' || status === 'failed') {
+        result = `${result}\n\n${comment_templates_1.VIEW_FULL_RUN_DETAILS}`;
+    }
     for (const [key, value] of Object.entries(templateVariableToValue)) {
         result = result.replaceAll(`{{${key}}}`, value);
     }

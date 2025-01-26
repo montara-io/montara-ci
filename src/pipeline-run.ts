@@ -4,7 +4,8 @@ import axios from 'axios'
 import {
   PIPELINE_RUN_PENDING,
   PIPELINE_RUN_STARTED,
-  PIPELINE_RUN_STATUS
+  PIPELINE_RUN_STATUS,
+  VIEW_FULL_RUN_DETAILS
 } from './comment-templates'
 
 // eslint-disable-next-line no-shadow
@@ -243,6 +244,9 @@ export function buildRunResultTemplate({
   }
 
   let result = PIPELINE_RUN_STATUS
+  if (status === 'completed' || status === 'failed') {
+    result = `${result}\n\n${VIEW_FULL_RUN_DETAILS}`
+  }
 
   for (const [key, value] of Object.entries(templateVariableToValue)) {
     result = result.replaceAll(`{{${key}}}`, value)
