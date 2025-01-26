@@ -49,8 +49,7 @@ can not be merged.
 name: Montara CI
 on:
   pull_request:
-    branches-ignore:
-      - 'main'
+    types: [opened, synchronize, reopened]
 permissions:
   contents: read
   issues: write
