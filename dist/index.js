@@ -44532,7 +44532,7 @@ function trackEvent({ eventName, eventProperties = {} }) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PIPELINE_RUN_STATUS = exports.PIPELINE_RUN_STARTED = void 0;
+exports.PIPELINE_RUN_STATUS = exports.PIPELINE_RUN_PENDING = exports.PIPELINE_RUN_STARTED = void 0;
 const VIEW_FULL_RUN_DETAILS = `[View full run details in Montara](https://{{montaraPrefix}}.montara.io/app/pipelines/{{pipelineId}}?openModalRunId={{runId}})`;
 exports.PIPELINE_RUN_STARTED = `
 # Montara CI
@@ -44541,12 +44541,17 @@ exports.PIPELINE_RUN_STARTED = `
 
 ${VIEW_FULL_RUN_DETAILS}
 `;
+exports.PIPELINE_RUN_PENDING = `
+# Montara CI
+☑️ Set up a test environment for pipeline run
+☑️ Test run waiting to start
+`;
 exports.PIPELINE_RUN_STATUS = `
 # Montara CI report
 ☑️ Set up a test environment for pipeline run
 ☑️ Test run executed
 
-:{{statusIcon}}: test run {{status}}
+:{{statusIcon}}: Test run {{status}}
 
 ## Run details
 
@@ -44630,7 +44635,7 @@ async function postComment({ comment }) {
             issue_number: prNumber,
             body: comment
         });
-        console.log('Comment posted successfully!');
+        console.debug('Comment posted successfully!');
     }
     catch (error) {
         console.log('Error posting comment:', error);
@@ -44725,6 +44730,7 @@ async function run() {
             : true;
         const numRetries = Number(core.getInput('numRetries')) || 60;
         let isPipelineStartedCommentPosted = false;
+        let isPipelinePendingCommentPosted = false;
         core.info(`Montara GitHub Action is running with webhookUrl: ${webhookUrl}, fallbackSchema: ${fallbackSchema} and numRetries: ${numRetries}`);
         const branch = (0, github_1.getPullRequestBranch)();
         if (!branch) {
@@ -44759,7 +44765,7 @@ async function run() {
                 core.setFailed(`There is an existing pipeline run in progress. Please wait for it to complete before triggering a new run.`);
                 return;
             }
-            if (!isPipelineStartedCommentPosted) {
+            if (status === 'in_progress' && !isPipelineStartedCommentPosted) {
                 core.info(`Pipeline run started`);
                 await (0, github_1.postComment)({
                     comment: (0, pipeline_run_1.buildRunStartedTemplate)({
@@ -44770,11 +44776,18 @@ async function run() {
                 });
                 isPipelineStartedCommentPosted = true;
             }
+            if (status === 'pending' && !isPipelinePendingCommentPosted) {
+                core.info(`Pipeline run pending`);
+                await (0, github_1.postComment)({
+                    comment: (0, pipeline_run_1.buildRunPendingTemplate)()
+                });
+                isPipelinePendingCommentPosted = true;
+            }
             if (['completed', 'failed', 'cancelled'].includes(status)) {
                 core.info(`Pipeline run completed with status: ${status}`);
                 await (0, github_1.postComment)({
                     comment: (0, pipeline_run_1.buildRunResultTemplate)({
-                        isPassing: status !== 'failed',
+                        status,
                         isStaging,
                         runId,
                         pipelineId,
@@ -44782,6 +44795,7 @@ async function run() {
                         numPassed,
                         numFailed,
                         numSkipped,
+                        errors,
                         runDuration: (0, utils_1.formatDuration)((new Date().getTime() - startTime) / 1000)
                     })
                 });
@@ -44796,13 +44810,19 @@ async function run() {
                     return;
                 }
                 else if (status === 'cancelled') {
-                    core.warning(`Pipeline run cancelled with reason: ${errors}!`);
+                    core.debug(`errors: ${JSON.stringify(errors)}!`);
+                    const errorString = errors?.generalErrors?.length
+                        ? errors.generalErrors[0]?.message
+                        : JSON.stringify(errors);
+                    core.debug(`errorString: ${errorString}`);
+                    core.warning(`Pipeline run canceled with reason: ${errorString}`);
                     (0, analytics_1.trackEvent)({
-                        eventName: 'montara_ciJobSuccess',
+                        eventName: 'montara_ciJobCanceled',
                         eventProperties: {
                             runId
                         }
                     });
+                    core.setFailed(`Pipeline run canceled`);
                     return;
                 }
                 else if (status === 'failed') {
@@ -44893,6 +44913,7 @@ exports.ModelRunStatus = void 0;
 exports.triggerPipelineFromWebhookUrl = triggerPipelineFromWebhookUrl;
 exports.getRunStatus = getRunStatus;
 exports.buildRunStartedTemplate = buildRunStartedTemplate;
+exports.buildRunPendingTemplate = buildRunPendingTemplate;
 exports.buildRunResultTemplate = buildRunResultTemplate;
 const core = __importStar(__nccwpck_require__(7484));
 const axios_1 = __importDefault(__nccwpck_require__(7269));
@@ -44960,10 +44981,35 @@ function buildRunStartedTemplate({ isStaging, runId, pipelineId }) {
     }
     return result;
 }
-function buildRunResultTemplate({ isPassing, isStaging, runId, pipelineId, runDuration, numModels, numPassed, numFailed, numSkipped }) {
+function buildRunPendingTemplate() {
+    return comment_templates_1.PIPELINE_RUN_PENDING;
+}
+function buildRunResultTemplate({ status, isStaging, runId, pipelineId, runDuration, numModels, numPassed, numFailed, numSkipped, errors }) {
+    let statusText;
+    const errorString = errors?.generalErrors?.length
+        ? `- ${errors.generalErrors[0]?.message}`
+        : undefined;
+    switch (status) {
+        case 'completed':
+            statusText = 'completed successfully';
+            break;
+        case 'failed':
+            statusText = 'failed';
+            break;
+        case 'cancelled':
+            statusText = `canceled${errorString ? errorString : ''}`;
+            break;
+        default:
+            statusText = 'unknown';
+            break;
+    }
     const templateVariableToValue = {
-        statusIcon: isPassing ? 'white_check_mark' : 'x',
-        status: isPassing ? 'completed successfully' : 'failed',
+        statusIcon: status === 'completed'
+            ? 'white_check_mark'
+            : status === 'cancelled'
+                ? 'warning'
+                : 'x', //for failed
+        status: statusText,
         runId,
         pipelineId,
         montaraPrefix: isStaging ? 'staging' : 'app',

@@ -48,8 +48,7 @@ can not be merged.
 name: Montara CI
 on:
   pull_request:
-    branches-ignore:
-      - 'main'
+    types: [opened, synchronize, reopened]
 permissions:
   contents: read
   issues: write
@@ -60,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Montara CI
-        uses: montara-io/montara-ci@v1.0.6
+        uses: montara-io/montara-ci@v1.0.12
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

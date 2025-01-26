@@ -1,7 +1,11 @@
 import * as core from '@actions/core'
 import { DbtRunErrors } from '@montara-io/error-parsing'
 import axios from 'axios'
-import { PIPELINE_RUN_STARTED, PIPELINE_RUN_STATUS } from './comment-templates'
+import {
+  PIPELINE_RUN_PENDING,
+  PIPELINE_RUN_STARTED,
+  PIPELINE_RUN_STATUS
+} from './comment-templates'
 
 // eslint-disable-next-line no-shadow
 export enum ModelRunStatus {
@@ -14,6 +18,13 @@ enum RunEnvironment {
   Staging = 'Staging',
   Production = 'Production',
   CI = 'CI'
+}
+
+type PipelineErrors = {
+  generalErrors: {
+    type: string
+    message: string
+  }[]
 }
 
 type GetPipelineRunStatus = {
@@ -107,7 +118,7 @@ export async function getRunStatus({
   numPassed: number
   numFailed: number
   numSkipped: number
-  errors: any
+  errors: PipelineErrors
 }> {
   const url = `https://${isStaging ? 'staging-' : ''}hooks.montara.io/pipeline/run/status`
 
@@ -167,8 +178,12 @@ export function buildRunStartedTemplate({
   return result
 }
 
+export function buildRunPendingTemplate(): string {
+  return PIPELINE_RUN_PENDING
+}
+
 export function buildRunResultTemplate({
-  isPassing,
+  status,
   isStaging,
   runId,
   pipelineId,
@@ -176,9 +191,10 @@ export function buildRunResultTemplate({
   numModels,
   numPassed,
   numFailed,
-  numSkipped
+  numSkipped,
+  errors
 }: {
-  isPassing: boolean
+  status: PipelineRunStatus
   isStaging: boolean
   runId: string
   pipelineId: string
@@ -187,10 +203,35 @@ export function buildRunResultTemplate({
   numPassed: number
   numFailed: number
   numSkipped: number
+  errors: PipelineErrors
 }): string {
+  let statusText: string
+  const errorString = errors?.generalErrors?.length
+    ? `- ${errors.generalErrors[0]?.message}`
+    : undefined
+  switch (status) {
+    case 'completed':
+      statusText = 'completed successfully'
+      break
+    case 'failed':
+      statusText = 'failed'
+      break
+    case 'cancelled':
+      statusText = `canceled${errorString ? errorString : ''}`
+      break
+    default:
+      statusText = 'unknown'
+      break
+  }
+
   const templateVariableToValue = {
-    statusIcon: isPassing ? 'white_check_mark' : 'x',
-    status: isPassing ? 'completed successfully' : 'failed',
+    statusIcon:
+      status === 'completed'
+        ? 'white_check_mark'
+        : status === 'cancelled'
+          ? 'warning'
+          : 'x', //for failed
+    status: statusText,
     runId,
     pipelineId,
     montaraPrefix: isStaging ? 'staging' : 'app',

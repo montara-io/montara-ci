@@ -8,6 +8,7 @@ import {
   postComment
 } from './github'
 import {
+  buildRunPendingTemplate,
   buildRunResultTemplate,
   buildRunStartedTemplate,
   getRunStatus,
@@ -40,6 +41,7 @@ export async function run(): Promise<void> {
     const numRetries = Number(core.getInput('numRetries')) || 60
 
     let isPipelineStartedCommentPosted = false
+    let isPipelinePendingCommentPosted = false
 
     core.info(
       `Montara GitHub Action is running with webhookUrl: ${webhookUrl}, fallbackSchema: ${fallbackSchema} and numRetries: ${numRetries}`
@@ -95,7 +97,7 @@ export async function run(): Promise<void> {
         )
         return
       }
-      if (!isPipelineStartedCommentPosted) {
+      if (status === 'in_progress' && !isPipelineStartedCommentPosted) {
         core.info(`Pipeline run started`)
         await postComment({
           comment: buildRunStartedTemplate({
@@ -106,11 +108,18 @@ export async function run(): Promise<void> {
         })
         isPipelineStartedCommentPosted = true
       }
+      if (status === 'pending' && !isPipelinePendingCommentPosted) {
+        core.info(`Pipeline run pending`)
+        await postComment({
+          comment: buildRunPendingTemplate()
+        })
+        isPipelinePendingCommentPosted = true
+      }
       if (['completed', 'failed', 'cancelled'].includes(status)) {
         core.info(`Pipeline run completed with status: ${status}`)
         await postComment({
           comment: buildRunResultTemplate({
-            isPassing: status !== 'failed',
+            status,
             isStaging,
             runId,
             pipelineId,
@@ -118,6 +127,7 @@ export async function run(): Promise<void> {
             numPassed,
             numFailed,
             numSkipped,
+            errors,
             runDuration: formatDuration(
               (new Date().getTime() - startTime) / 1000
             )
@@ -134,14 +144,20 @@ export async function run(): Promise<void> {
 
           return
         } else if (status === 'cancelled') {
-          core.warning(`Pipeline run cancelled with reason: ${errors}!`)
+          core.debug(`errors: ${JSON.stringify(errors)}!`)
+          const errorString = errors?.generalErrors?.length
+            ? errors.generalErrors[0]?.message
+            : JSON.stringify(errors)
+
+          core.debug(`errorString: ${errorString}`)
+          core.warning(`Pipeline run canceled with reason: ${errorString}`)
           trackEvent({
-            eventName: 'montara_ciJobSuccess',
+            eventName: 'montara_ciJobCanceled',
             eventProperties: {
               runId
             }
           })
-
+          core.setFailed(`Pipeline run canceled`)
           return
         } else if (status === 'failed') {
           trackEvent({
