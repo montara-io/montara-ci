@@ -38,6 +38,13 @@ can not be merged.
   user who created the PR. You can also specify a fallback schema to override
   this behavior if the PR is created outside of Montara.
 
+- [Optional] You can pass variables to the test run by setting the `variables`
+  parameter to a JSON object of key-value pairs. for example:
+
+  ```yaml
+  variables: '{"var1": "value1", "var2": "value2"}'
+  ```
+
 - [Optional] The test run by default will run a Montara smart run. You can
   disable this by setting the `isSmartRun` parameter to `false`.
 
@@ -60,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Montara CI
-        uses: montara-io/montara-ci@v1.0.14
+        uses: montara-io/montara-ci@v1.0.16
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -73,6 +80,7 @@ jobs:
 ```yaml
 isSmartRun: <[optional]true|false>
 allowConcurrentPipelineRuns: <[optional]true|false>
+variables: <[optional]{key: value}>
 ```
 
 - You're good to go 🚀. Go ahead and create a new PR.

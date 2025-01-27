@@ -28,12 +28,22 @@ export async function run(): Promise<void> {
     const fallbackSchema: string = core.getInput('fallbackSchema')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
     const isSmartRunParam: string = core.getInput('isSmartRun')
+    const variables: string = core.getInput('variables')
     const isSmartRun: boolean = isSmartRunParam
       ? isSmartRunParam === 'true'
       : true
     const allowConcurrentPipelineRunsParam: string = core.getInput(
       'allowConcurrentPipelineRuns'
     )
+    let dbtVariables: Record<string, string> | undefined
+    if (variables?.trim()) {
+      dbtVariables = parseVariables(variables)
+      if (!dbtVariables) {
+        return
+      }
+      core.info(`using dbtVariables: ${JSON.stringify(dbtVariables)}`)
+    }
+
     const allowConcurrentPipelineRuns: boolean =
       allowConcurrentPipelineRunsParam
         ? allowConcurrentPipelineRunsParam === 'true'
@@ -67,7 +77,8 @@ export async function run(): Promise<void> {
       commit,
       fallbackSchema,
       isSmartRun,
-      allowConcurrentPipelineRuns
+      allowConcurrentPipelineRuns,
+      dbtVariables
     })
 
     core.info(`Pipeline run triggered with runId: ${runId}`)
@@ -195,5 +206,39 @@ export async function run(): Promise<void> {
       core.error(`Error occurred: ${errorString}`)
       core.setFailed(error.message)
     }
+  }
+}
+
+function parseVariables(variables: string): Record<string, string> | undefined {
+  try {
+    const parsed = JSON.parse(variables)
+    if (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      !Array.isArray(parsed)
+    ) {
+      // Validate all keys and values are strings
+      const isValid = Object.entries(parsed).every(
+        ([key, value]) => typeof key === 'string' && typeof value === 'string'
+      )
+      if (isValid) {
+        return parsed
+      } else {
+        core.setFailed(
+          'Variables must be a dictionary of string keys to string values'
+        )
+        return undefined
+      }
+    } else {
+      core.setFailed(
+        'Variables must be a dictionary of string keys to string values'
+      )
+      return undefined
+    }
+  } catch (error) {
+    core.setFailed(
+      `'Variables must be a dictionary of string keys to string values': ${error}`
+    )
+    return undefined
   }
 }

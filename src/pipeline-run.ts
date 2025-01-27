@@ -67,7 +67,8 @@ export async function triggerPipelineFromWebhookUrl({
   commit,
   fallbackSchema,
   isSmartRun,
-  allowConcurrentPipelineRuns
+  allowConcurrentPipelineRuns,
+  dbtVariables
 }: {
   webhookUrl: string
   branch: string
@@ -75,6 +76,7 @@ export async function triggerPipelineFromWebhookUrl({
   fallbackSchema: string
   isSmartRun: boolean
   allowConcurrentPipelineRuns: boolean
+  dbtVariables: Record<string, string> | undefined
 }): Promise<{
   runId: string
   webhookId: string
@@ -95,7 +97,8 @@ export async function triggerPipelineFromWebhookUrl({
     runEnvironment: RunEnvironment.CI,
     fallbackSchema,
     isSmartRun,
-    allowConcurrentPipelineRuns
+    allowConcurrentPipelineRuns,
+    dbtVariables
   })
   core.debug(
     `Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`

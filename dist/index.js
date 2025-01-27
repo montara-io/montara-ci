@@ -44717,10 +44717,19 @@ async function run() {
         const fallbackSchema = core.getInput('fallbackSchema');
         const isStaging = core.getInput('isStaging') === 'true';
         const isSmartRunParam = core.getInput('isSmartRun');
+        const variables = core.getInput('variables');
         const isSmartRun = isSmartRunParam
             ? isSmartRunParam === 'true'
             : true;
         const allowConcurrentPipelineRunsParam = core.getInput('allowConcurrentPipelineRuns');
+        let dbtVariables;
+        if (variables?.trim()) {
+            dbtVariables = parseVariables(variables);
+            if (!dbtVariables) {
+                return;
+            }
+            core.info(`using dbtVariables: ${JSON.stringify(dbtVariables)}`);
+        }
         const allowConcurrentPipelineRuns = allowConcurrentPipelineRunsParam
             ? allowConcurrentPipelineRunsParam === 'true'
             : true;
@@ -44745,7 +44754,8 @@ async function run() {
             commit,
             fallbackSchema,
             isSmartRun,
-            allowConcurrentPipelineRuns
+            allowConcurrentPipelineRuns,
+            dbtVariables
         });
         core.info(`Pipeline run triggered with runId: ${runId}`);
         let counter = 0;
@@ -44858,6 +44868,32 @@ async function run() {
         }
     }
 }
+function parseVariables(variables) {
+    try {
+        const parsed = JSON.parse(variables);
+        if (typeof parsed === 'object' &&
+            parsed !== null &&
+            !Array.isArray(parsed)) {
+            // Validate all keys and values are strings
+            const isValid = Object.entries(parsed).every(([key, value]) => typeof key === 'string' && typeof value === 'string');
+            if (isValid) {
+                return parsed;
+            }
+            else {
+                core.setFailed('Variables must be a dictionary of string keys to string values');
+                return undefined;
+            }
+        }
+        else {
+            core.setFailed('Variables must be a dictionary of string keys to string values');
+            return undefined;
+        }
+    }
+    catch (error) {
+        core.setFailed(`'Variables must be a dictionary of string keys to string values': ${error}`);
+        return undefined;
+    }
+}
 
 
 /***/ }),
@@ -44927,7 +44963,7 @@ var RunEnvironment;
     RunEnvironment["Production"] = "Production";
     RunEnvironment["CI"] = "CI";
 })(RunEnvironment || (RunEnvironment = {}));
-async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, fallbackSchema, isSmartRun, allowConcurrentPipelineRuns }) {
+async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, fallbackSchema, isSmartRun, allowConcurrentPipelineRuns, dbtVariables }) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
     core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}, isSmartRun: ${isSmartRun}, allowConcurrentPipelineRuns: ${allowConcurrentPipelineRuns}`);
     const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
@@ -44936,7 +44972,8 @@ async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, fallb
         runEnvironment: RunEnvironment.CI,
         fallbackSchema,
         isSmartRun,
-        allowConcurrentPipelineRuns
+        allowConcurrentPipelineRuns,
+        dbtVariables
     });
     core.debug(`Pipeline triggered successfully with runId: ${runId} and webhookId: ${webhookId}`);
     return { runId, webhookId };
