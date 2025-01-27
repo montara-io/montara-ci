@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Montara CI
-        uses: montara-io/montara-ci@v1.0.16
+        uses: montara-io/montara-ci@v1.0.17
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

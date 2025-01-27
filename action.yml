@@ -10,13 +10,24 @@ inputs:
   webhookUrl:
     description: 'The URL of the webhook'
     required: true
-  isStaging:
-    description: 'Whether the test run is for staging or not'
+  isSmartRun:
+    description: 'Whether to use smart run, defaults to true'
     required: false
+    default: 'true'
+  variables:
+    description:
+      'The variables to pass to the test run, a stringified JSON object of
+      key-value pairs. for example: {"var1": "value1", "var2": "value2"}'
+    required: false
+  allowConcurrentPipelineRuns:
+    description: 'Whether to allow concurrent pipeline runs, defaults to true'
+    required: false
+    default: 'true'
   numRetries:
     description: 'The number of retries to attempt'
     required: false
     default: '60'
+
 runs:
   using: node20
   main: dist/index.js
