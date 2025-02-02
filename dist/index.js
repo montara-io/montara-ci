@@ -44762,15 +44762,11 @@ async function run() {
         await (0, wait_1.wait)(2000);
         while (counter < numRetries) {
             core.info(`Checking status of pipeline run with runId: ${runId} (Attempt: ${counter}/${numRetries})`);
-            const { status, pipelineId, numFailed, numModels, numPassed, numSkipped, errors } = await (0, pipeline_run_1.getRunStatus)({
+            const { status, cancelledReason, pipelineId, numFailed, numModels, numPassed, numSkipped, errors } = await (0, pipeline_run_1.getRunStatus)({
                 runId,
                 webhookId,
                 isStaging
             });
-            if (status === 'conflict') {
-                core.setFailed(`There is an existing pipeline run in progress. Please wait for it to complete before triggering a new run.`);
-                return;
-            }
             if (status === 'in_progress' && !isPipelineStartedCommentPosted) {
                 core.info(`Pipeline run started`);
                 await (0, github_1.postComment)({
@@ -44816,12 +44812,23 @@ async function run() {
                     return;
                 }
                 else if (status === 'cancelled') {
-                    core.debug(`errors: ${JSON.stringify(errors)}!`);
                     const errorString = errors?.generalErrors?.length
                         ? errors.generalErrors[0]?.message
                         : JSON.stringify(errors);
                     core.debug(`errorString: ${errorString}`);
-                    core.warning(`Pipeline run canceled with reason: ${errorString}`);
+                    core.warning(`Pipeline run canceled with reason: ${cancelledReason}`);
+                    if (cancelledReason === 'Conflict') {
+                        core.setFailed(`There is an existing pipeline run in progress. Please wait for it to complete before triggering a new run.`);
+                        return;
+                    }
+                    else if (cancelledReason === 'MissingTargetInfo') {
+                        core.setFailed(`Missing target info. Please add target info to the pipeline.`);
+                        return;
+                    }
+                    else if (cancelledReason === 'UserCancelled') {
+                        core.setFailed(`Pipeline run cancelled by user. Please check the pipeline run status.`);
+                        return;
+                    }
                     (0, analytics_1.trackEvent)({
                         eventName: 'montara_ciJobSuccess',
                         eventProperties: {
@@ -44993,6 +45000,7 @@ async function getRunStatus({ runId, webhookId, isStaging }) {
     const numSkipped = runStatus?.data?.modelRunDetails?.filter(model => model.status === ModelRunStatus.Skipped).length ?? 0;
     return {
         status: runStatus.data.status,
+        cancelledReason: runStatus.data.cancelledReason,
         pipelineId: runStatus.data.pipelineId,
         numModels,
         numPassed,
