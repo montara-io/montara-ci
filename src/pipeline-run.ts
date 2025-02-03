@@ -31,6 +31,7 @@ type PipelineErrors = {
 type GetPipelineRunStatus = {
   id: string
   status: PipelineRunStatus
+  cancelledReason: PipelineCancelledReason
   pipelineId: string
   errors: DbtRunErrors
   modelRunDetails: {
@@ -57,9 +58,14 @@ type PipelineRunStatus =
   | 'in_progress'
   | 'failed'
   | 'completed'
-  | 'conflict'
   | 'cancelling'
   | 'cancelled'
+
+type PipelineCancelledReason =
+  | 'UserCancelled'
+  | 'Conflict'
+  | 'NoModelsToRun'
+  | 'MissingTargetInfo'
 
 export async function triggerPipelineFromWebhookUrl({
   webhookUrl,
@@ -117,6 +123,7 @@ export async function getRunStatus({
   isStaging: boolean
 }): Promise<{
   status: PipelineRunStatus
+  cancelledReason: PipelineCancelledReason
   pipelineId: string
   numModels: number
   numPassed: number
@@ -149,6 +156,7 @@ export async function getRunStatus({
     ).length ?? 0
   return {
     status: runStatus.data.status,
+    cancelledReason: runStatus.data.cancelledReason,
     pipelineId: runStatus.data.pipelineId,
     numModels,
     numPassed,
