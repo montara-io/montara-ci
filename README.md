@@ -48,6 +48,9 @@ can not be merged.
 - [Optional] The test run by default will run a Montara smart run. You can
   disable this by setting the `isSmartRun` parameter to `false`.
 
+- [Optional] You can choose to run the montara pipline with full refreshby
+  setting the `fullRefresh` parameter to `true`.
+
 - [Optional] The test run by default will run in parallel to any pipelines that
   might run at the same time. You can disable this by setting the
   `allowConcurrentPipelineRuns` parameter to `false`.
@@ -67,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Montara CI
-        uses: montara-io/montara-ci@v1.0.19
+        uses: montara-io/montara-ci@v1.0.20
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -79,6 +82,7 @@ jobs:
 
 ```yaml
 isSmartRun: <[optional]true|false>
+fullRefresh: <[optional]true|false>
 allowConcurrentPipelineRuns: <[optional]true|false>
 variables: <[optional]{key: value}>
 ```

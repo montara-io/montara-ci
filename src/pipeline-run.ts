@@ -73,6 +73,7 @@ export async function triggerPipelineFromWebhookUrl({
   commit,
   fallbackSchema,
   isSmartRun,
+  fullRefresh,
   allowConcurrentPipelineRuns,
   dbtVariables
 }: {
@@ -81,6 +82,7 @@ export async function triggerPipelineFromWebhookUrl({
   commit: string
   fallbackSchema: string
   isSmartRun: boolean
+  fullRefresh: boolean
   allowConcurrentPipelineRuns: boolean
   dbtVariables: Record<string, string> | undefined
 }): Promise<{
@@ -89,7 +91,7 @@ export async function triggerPipelineFromWebhookUrl({
 }> {
   // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
   core.debug(
-    `Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}, isSmartRun: ${isSmartRun}, allowConcurrentPipelineRuns: ${allowConcurrentPipelineRuns}`
+    `Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}, isSmartRun: ${isSmartRun} , fullRefresh: ${fullRefresh}, allowConcurrentPipelineRuns: ${allowConcurrentPipelineRuns}`
   )
 
   const {
@@ -103,6 +105,7 @@ export async function triggerPipelineFromWebhookUrl({
     runEnvironment: RunEnvironment.CI,
     fallbackSchema,
     isSmartRun,
+    fullRefresh,
     allowConcurrentPipelineRuns,
     dbtVariables
   })
