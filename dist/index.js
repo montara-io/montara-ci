@@ -44716,11 +44716,15 @@ async function run() {
         const webhookUrl = core.getInput('webhookUrl');
         const fallbackSchema = core.getInput('fallbackSchema');
         const isStaging = core.getInput('isStaging') === 'true';
-        const isSmartRunParam = core.getInput('isSmartRun');
         const variables = core.getInput('variables');
+        const isSmartRunParam = core.getInput('isSmartRun');
         const isSmartRun = isSmartRunParam
             ? isSmartRunParam === 'true'
             : true;
+        const fullRefreshParam = core.getInput('fullRefresh');
+        const fullRefresh = fullRefreshParam
+            ? fullRefreshParam === 'true'
+            : false;
         const allowConcurrentPipelineRunsParam = core.getInput('allowConcurrentPipelineRuns');
         let dbtVariables;
         if (variables?.trim()) {
@@ -44754,6 +44758,7 @@ async function run() {
             commit,
             fallbackSchema,
             isSmartRun,
+            fullRefresh,
             allowConcurrentPipelineRuns,
             dbtVariables
         });
@@ -44970,15 +44975,16 @@ var RunEnvironment;
     RunEnvironment["Production"] = "Production";
     RunEnvironment["CI"] = "CI";
 })(RunEnvironment || (RunEnvironment = {}));
-async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, fallbackSchema, isSmartRun, allowConcurrentPipelineRuns, dbtVariables }) {
+async function triggerPipelineFromWebhookUrl({ webhookUrl, branch, commit, fallbackSchema, isSmartRun, fullRefresh, allowConcurrentPipelineRuns, dbtVariables }) {
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}, isSmartRun: ${isSmartRun}, allowConcurrentPipelineRuns: ${allowConcurrentPipelineRuns}`);
+    core.debug(`Triggerring Montara pipeline with webhookUrl: ${webhookUrl}, branch: ${branch} and commit: ${commit}, fallbackSchema: ${fallbackSchema}, isSmartRun: ${isSmartRun} , fullRefresh: ${fullRefresh}, allowConcurrentPipelineRuns: ${allowConcurrentPipelineRuns}`);
     const { data: { runId, webhookId } } = await axios_1.default.post(webhookUrl, {
         branch,
         commit,
         runEnvironment: RunEnvironment.CI,
         fallbackSchema,
         isSmartRun,
+        fullRefresh,
         allowConcurrentPipelineRuns,
         dbtVariables
     });

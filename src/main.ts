@@ -27,11 +27,15 @@ export async function run(): Promise<void> {
     const webhookUrl: string = core.getInput('webhookUrl')
     const fallbackSchema: string = core.getInput('fallbackSchema')
     const isStaging: boolean = core.getInput('isStaging') === 'true'
-    const isSmartRunParam: string = core.getInput('isSmartRun')
     const variables: string = core.getInput('variables')
+    const isSmartRunParam: string = core.getInput('isSmartRun')
     const isSmartRun: boolean = isSmartRunParam
       ? isSmartRunParam === 'true'
       : true
+    const fullRefreshParam: string = core.getInput('fullRefresh')
+    const fullRefresh: boolean = fullRefreshParam
+      ? fullRefreshParam === 'true'
+      : false
     const allowConcurrentPipelineRunsParam: string = core.getInput(
       'allowConcurrentPipelineRuns'
     )
@@ -77,6 +81,7 @@ export async function run(): Promise<void> {
       commit,
       fallbackSchema,
       isSmartRun,
+      fullRefresh,
       allowConcurrentPipelineRuns,
       dbtVariables
     })

@@ -14,6 +14,10 @@ inputs:
     description: 'Whether to use smart run, defaults to true'
     required: false
     default: 'true'
+  fullRefresh:
+    description: 'Whether to use full refresh, defaults to false'
+    required: false
+    default: 'false'
   variables:
     description:
       'The variables to pass to the test run, a stringified JSON object of
